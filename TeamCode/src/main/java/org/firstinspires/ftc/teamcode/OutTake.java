@@ -71,8 +71,12 @@ public class OutTake {
         double LRevs = LPos / LeftTicksPerRev;
         double RRevs = RPos / RightTicksPerRev;
 
-        double LeftRPM = (LRevs - LastLRevs) / (DeltaTime / 60);
-        double RightRPM = (RRevs - LastRRevs) / (DeltaTime / 60);
+//        double LeftTicks = (LRevs - LastLRevs);
+//        double RightTicks = (RRevs - LastRRevs);
+        double LeftRPM = LMotor.getVelocity() / LeftTicksPerRev * 60;
+        double RightRPM = RMotor.getVelocity() / RightTicksPerRev * 60;
+//        double LeftRPM = LeftTicks / (DeltaTime / 60);
+//        double RightRPM = RightTicks / (DeltaTime / 60);
 
         PIDCoefficients pidOrig = LMotor.getPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -108,8 +112,11 @@ public class OutTake {
         telemetry.addData("RPower", this.RPower);
 
         TelemetryPacket packet = new TelemetryPacket();
+//        packet.put("LeftTicks", LeftTicks);
+//        packet.put("RightTicks", RightTicks);
         packet.put("LeftRPM", LeftRPM);
         packet.put("RightRPM", RightRPM);
+        packet.put("DeltaTime", DeltaTime * 100000);
         FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
         LastLRevs = LRevs;
