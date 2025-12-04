@@ -78,30 +78,30 @@ public class OutTake {
 //        double LeftRPM = LeftTicks / (DeltaTime / 60);
 //        double RightRPM = RightTicks / (DeltaTime / 60);
 
-        PIDCoefficients pidOrig = LMotor.getPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+//        PIDCoefficients pidOrig = LMotor.getPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
         PIDCoefficients pidNew = new PIDCoefficients(NEW_P,NEW_I,NEW_D);
-        LMotor.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidNew);
-        RMotor.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,pidNew);
+        LMotor.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidNew);
+        RMotor.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidNew);
 
 
 
-        if (this.RunningToRPM) {
-            if (LeftRPM > this.WantedRPM || RightRPM > this.WantedRPM) {
-                this.ReachedTargetRPM = true;
-            }
-
-            LMotor.setPower(this.LPower);
-            RMotor.setPower(this.RPower);
-
-            if (this.ReachedTargetRPM) {
-                LMotor.setPower(this.WantedRPM / this.AproxMaxRPM);
-                RMotor.setPower(this.WantedRPM / this.AproxMaxRPM);
-            } else {
-                LMotor.setPower(1);
-                RMotor.setPower(1);
-            }
-        }
+//        if (this.RunningToRPM) {
+//            if (LeftRPM > this.WantedRPM || RightRPM > this.WantedRPM) {
+//                this.ReachedTargetRPM = true;
+//            }
+//
+//            LMotor.setPower(this.LPower);
+//            RMotor.setPower(this.RPower);
+//
+//            if (this.ReachedTargetRPM) {
+//                LMotor.setPower(this.WantedRPM / this.AproxMaxRPM);
+//                RMotor.setPower(this.WantedRPM / this.AproxMaxRPM);
+//            } else {
+//                LMotor.setPower(1);
+//                RMotor.setPower(1);
+//            }
+//        }
 
         String LeftMsg = String.valueOf(Math.round(LeftRPM)) + " / " + String.valueOf(this.AproxMaxRPM) + " (" + String.valueOf(Math.round(LeftRPM / this.AproxMaxRPM)) + "%)";
         String RightMsg = String.valueOf(Math.round(RightRPM)) + " / " + String.valueOf(this.AproxMaxRPM) + " (" + String.valueOf(Math.round(RightRPM / this.AproxMaxRPM)) + "%)";
@@ -130,8 +130,9 @@ public class OutTake {
     }
 
     public void SetVelocity(double Velocity) {
-        LMotor.setVelocity(Velocity);
-        RMotor.setVelocity(Velocity);
+        double MaxTicksPerSecond = 28.0 / (60.0 / 6000.0);
+        LMotor.setVelocity(Velocity * MaxTicksPerSecond);
+        RMotor.setVelocity(Velocity * MaxTicksPerSecond);
     }
 
 //    public void RunToRPM(double RPM) {

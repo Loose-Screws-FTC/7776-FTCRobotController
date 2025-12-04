@@ -1,5 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.hardware.ams.AMSColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -17,7 +22,7 @@ public class Intake {
 
     private double Speed = 0;
     private double TargetSpeed = 0;
-    private double RampUpSpeed = 0.075;
+    private double RampUpSpeed = 4;
 
     public void Init(Servo LeftServo, Servo RightServo, DcMotor IntakeMotor) {
         this.LServ = LeftServo;
@@ -37,7 +42,7 @@ public class Intake {
     }
 
     public void Update(double DeltaTime) {
-        this.Speed += (this.TargetSpeed - this.Speed) * this.RampUpSpeed;
+        this.Speed += (this.TargetSpeed - this.Speed) * DeltaTime * this.RampUpSpeed;
         this.Motor.setPower(this.Speed);
     }
 
@@ -69,5 +74,45 @@ public class Intake {
         this.Motor.setPower(0);
         Speed = 0;
         TargetSpeed = 0;
+    }
+
+    public class AutoStartIntakingClass implements Action {
+        private boolean initialized = false;
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket packet) {
+            if (!initialized) {
+                ServosToIntake();
+                SetPower(1);
+                Update(0.25);
+                initialized = true;
+            }
+
+            return false;
+        }
+    }
+
+    public Action AutoStartIntaking() {
+        return new AutoStartIntakingClass();
+    }
+
+    public class AutoStopIntakingClass implements Action {
+        private boolean initialized = false;
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket packet) {
+            if (!initialized) {
+                ServosToNeutral();
+                SetPower(0);
+                Update(0.25);
+                initialized = true;
+            }
+
+            return false;
+        }
+    }
+
+    public Action AutoStopIntaking() {
+        return new AutoStopIntakingClass();
     }
 }

@@ -110,10 +110,9 @@ public class TeleOpTest0 extends OpMode {
         this.OutTakeController.Update(DeltaTime);
         this.IntakeController.Update(DeltaTime);
 
+        telemetry.addData("outtake power set", gamepad1.right_trigger);
         if (gamepad1.a) {
-            this.OutTakeController.SetPower(1);
-        } else {
-            this.OutTakeController.Stop();
+            this.OutTakeController.SetVelocity(gamepad1.right_trigger);
         }
 
         if (gamepad1.b) {
