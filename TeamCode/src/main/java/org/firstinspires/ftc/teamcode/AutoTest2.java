@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import static java.lang.System.currentTimeMillis;
 
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 public class AutoTest2 extends LinearOpMode {
 //    private Drive DriveController;
     private Intake IntakeController;
+    private DecoderWheel DecoderWheelController;
 
     private int AutoStep = -1;
     private double AutoStepTimer = 0;
@@ -51,6 +53,13 @@ public class AutoTest2 extends LinearOpMode {
         this.IntakeController = new Intake();
         this.IntakeController.Init(InLeftServo, InRightServo, InMotor);
 
+        DcMotor DecoderWheelMotor = hardwareMap.get(DcMotor.class, "ringdrive");
+
+        this.DecoderWheelController = new DecoderWheel();
+        this.DecoderWheelController.Init(DecoderWheelMotor);
+
+        this.DecoderWheelController.SetIntake(IntakeController);
+
         Pose2d beginPose = new Pose2d(0, 0, 0);
         if (TuningOpModes.DRIVE_CLASS.equals(MecanumDrive.class)) {
             MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
@@ -59,9 +68,13 @@ public class AutoTest2 extends LinearOpMode {
 
             Actions.runBlocking(new SequentialAction(
                     this.IntakeController.AutoStartIntaking(),
+                    new SleepAction(0.5),
                     drive.actionBuilder(beginPose)
                             .strafeTo(new Vector2d(24, 0))
+                            .turn(90)
                             .build(),
+                    new SleepAction(0.5),
+                    this.DecoderWheelController.AutoRevolveRight(),
                     this.IntakeController.AutoStopIntaking(),
                     drive.actionBuilder(beginPose)
                             .strafeTo(new Vector2d(0, 24))

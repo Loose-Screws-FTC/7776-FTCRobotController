@@ -84,7 +84,7 @@ public class Intake {
             if (!initialized) {
                 ServosToIntake();
                 SetPower(1);
-                Update(0.25);
+                Update(1/RampUpSpeed);
                 initialized = true;
             }
 
@@ -104,7 +104,7 @@ public class Intake {
             if (!initialized) {
                 ServosToNeutral();
                 SetPower(0);
-                Update(0.25);
+                Update(1/RampUpSpeed);
                 initialized = true;
             }
 

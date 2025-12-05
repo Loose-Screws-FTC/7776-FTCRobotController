@@ -1,6 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -8,16 +15,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Config
 public class DecoderWheel {
     public static Telemetry telemetry;
 
-    private DcMotor Motor;
+    private DcMotorEx Motor;
 
     private double AddedAngleToRevolveOneStep = 120;
     private double TicksPerRev = 28 * 6.2;
     private double TargetAngle = 0;
     private double CurrAngle = 0;
-    private double MotorPower = 0.5;
+
+    public static double MaxMotorPower = 0.5;
+    public static double CloseMotorPower = 0.2;
+    public static double AcceptableAngleDeviation = 5;
+    public static double CloseAngleDeviation = 15;
 
     private boolean IsCurrentlyOpenToIntake = false;
 
@@ -33,11 +45,21 @@ public class DecoderWheel {
     private List<BallColor> BallsInWheel = new ArrayList<>();
 
     public void Init(DcMotor WheelMotor) {
-        this.Motor = WheelMotor;
+        this.Motor = (DcMotorEx)WheelMotor;
 
         this.Motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.Motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        this.Motor.setTargetPosition(0);
+//        this.Motor.setPower(MotorPower);
+//        this.Motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         this.Motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+//        PIDFCoefficients coefs = this.Motor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+//        telemetry.addLine(coefs.toString());
+//
+//        this.Motor.setPositionPIDFCoefficients(30);
+//
+//        this.Motor.setVelocityPIDFCoefficients(15, 5, 15, 0);
 
         this.BallsInWheel.add(BallColor.NONE);
         this.BallsInWheel.add(BallColor.NONE);
@@ -49,11 +71,14 @@ public class DecoderWheel {
 
         boolean OffTarget = false;
 
-        if (this.CurrAngle < this.TargetAngle - 5) {
-            this.Motor.setPower(MotorPower);
+        boolean isClose = Math.abs(this.TargetAngle - this.CurrAngle) < CloseAngleDeviation;
+        double baseMotorPower = isClose ? CloseMotorPower : MaxMotorPower;
+
+        if (this.CurrAngle < this.TargetAngle - AcceptableAngleDeviation) {
+            this.Motor.setPower(baseMotorPower);
             OffTarget = true;
-        } else if (this.CurrAngle > this.TargetAngle + 5) {
-            this.Motor.setPower(-MotorPower);
+        } else if (this.CurrAngle > this.TargetAngle + AcceptableAngleDeviation) {
+            this.Motor.setPower(-baseMotorPower);
             OffTarget = true;
         } else {
             this.Motor.setPower(0);
@@ -65,6 +90,16 @@ public class DecoderWheel {
 
         telemetry.addData("Current angle", this.CurrAngle);
         telemetry.addData("Motor", this.Motor.getCurrentPosition());
+//        this.Motor.setPositionPIDFCoefficients(RobotConfig.DecoderWheelPosP);
+//        this.Motor.setVelocityPIDFCoefficients(
+//            RobotConfig.DecoderWheelVelP,
+//            RobotConfig.DecoderWheelVelI,
+//            RobotConfig.DecoderWheelVelD,
+//            0 // F
+//        );
+//
+//        telemetry.addData("target angle", this.TargetAngle);
+//        this.Motor.setTargetPosition((int)(this.TargetAngle * TicksPerRev / 360.0));
     }
 
     /*
@@ -153,5 +188,23 @@ public class DecoderWheel {
 
     public void Stop() {
         this.Motor.setPower(0);
+    }
+
+    public class AutoRevolveRightClass implements Action {
+        private boolean initialized = false;
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket packet) {
+            if (!initialized) {
+                RevolveRight();
+                initialized = true;
+            }
+
+            return false;
+        }
+    }
+
+    public Action AutoRevolveRight() {
+        return new AutoRevolveRightClass();
     }
 }
