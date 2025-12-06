@@ -50,10 +50,7 @@ public class TeleOpTest0 extends OpMode {
     @Override
     // Has to be lowercase init()
     public void init() {
-        Drive.telemetry = telemetry;
-        OutTake.telemetry = telemetry;
-        DecoderWheel.telemetry = telemetry;
-        Intake.telemetry = telemetry;
+        Globals.telemetry = telemetry;
 
         DcMotor FlMotor = hardwareMap.get(DcMotor.class, "fl");
         DcMotor FrMotor = hardwareMap.get(DcMotor.class, "fr");

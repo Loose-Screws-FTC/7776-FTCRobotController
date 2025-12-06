@@ -14,8 +14,6 @@ public class Inspection extends OpMode {
     @Override
     // Has to be lowercase init()
     public void init() {
-        Intake.telemetry = telemetry;
-
         Servo InLeftServo = hardwareMap.get(Servo.class, "intakelefts");
         Servo InRightServo = hardwareMap.get(Servo.class, "intakerights");
 

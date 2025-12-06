@@ -19,8 +19,6 @@ import java.util.List;
 
 @Config
 public class DecoderWheel {
-    public static Telemetry telemetry;
-
     private DcMotorEx Motor;
 
     private double AddedAngleToRevolveOneStep = 120;

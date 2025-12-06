@@ -13,8 +13,6 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class Intake {
-    public static Telemetry telemetry;
-
     private Servo LServ;
     private Servo RServ;
 

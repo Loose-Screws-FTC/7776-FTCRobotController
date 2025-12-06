@@ -14,8 +14,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class OutTake {
-    public static Telemetry telemetry;
-
     private DcMotorEx LMotor;
     private DcMotorEx RMotor;
 
@@ -109,10 +107,10 @@ public class OutTake {
         String LeftMsg = String.valueOf(Math.round(LeftRPM)) + " / " + String.valueOf(this.AproxMaxRPM) + " (" + String.valueOf(Math.round(LeftRPM / this.AproxMaxRPM)) + "%)";
         String RightMsg = String.valueOf(Math.round(RightRPM)) + " / " + String.valueOf(this.AproxMaxRPM) + " (" + String.valueOf(Math.round(RightRPM / this.AproxMaxRPM)) + "%)";
 
-        telemetry.addData("Left RPM", LeftMsg);
-        telemetry.addData("Right RPM", RightMsg);
-        telemetry.addData("LPower", this.LPower);
-        telemetry.addData("RPower", this.RPower);
+        Globals.telemetry.addData("Left RPM", LeftMsg);
+        Globals.telemetry.addData("Right RPM", RightMsg);
+        Globals.telemetry.addData("LPower", this.LPower);
+        Globals.telemetry.addData("RPower", this.RPower);
 
         TelemetryPacket packet = new TelemetryPacket();
 //        packet.put("LeftTicks", LeftTicks);

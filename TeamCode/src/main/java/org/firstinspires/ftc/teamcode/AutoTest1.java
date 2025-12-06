@@ -16,7 +16,7 @@ public class AutoTest1 extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Drive.telemetry = telemetry;
+        Globals.telemetry = telemetry;
 
         waitForStart();
         if (!opModeIsActive()) {
