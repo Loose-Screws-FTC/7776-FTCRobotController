@@ -9,6 +9,8 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -20,6 +22,8 @@ import java.util.List;
 @Config
 public class DecoderWheel {
     private DcMotorEx Motor;
+
+    public static int IntakeSlot = 1;
 
     private double AddedAngleToRevolveOneStep = 120;
     private double TicksPerRev = 28 * 6.2;
@@ -63,7 +67,7 @@ public class DecoderWheel {
 
         this.BallsInWheel.add(BallColor.NONE);
         this.BallsInWheel.add(BallColor.NONE);
-        this.BallsInWheel.add(BallColor.PURPLE);
+        this.BallsInWheel.add(BallColor.NONE);
     }
 
     public void Update(double DeltaTime) {
@@ -120,6 +124,22 @@ public class DecoderWheel {
         this.TargetAngle -= AddedAngleToRevolveOneStep;
 
         Collections.rotate(BallsInWheel, -1);
+    }
+
+    public void SetIntakedColor(BallColor Color) {
+        BallsInWheel.set(IntakeSlot, Color);
+    }
+
+    public void ClearOuttakeSlot() {
+        BallsInWheel.set(0, BallColor.NONE);
+    }
+
+    public static BallColor DetermineBallColor(NormalizedRGBA colors) {
+        if (colors.green > colors.blue) {
+            return BallColor.GREEN;
+        } else {
+            return BallColor.PURPLE;
+        }
     }
 
     public boolean RevolveToColor(BallColor Color) {
