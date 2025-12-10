@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class RobotAbstractor {
-    public final Drive DriveSys;
     public final OutTake OutTakeSys;
     public final Intake IntakeSys;
     public final DecoderWheel DecoderWheelSys;
@@ -19,17 +18,7 @@ public class RobotAbstractor {
 
     public final NormalizedColorSensor ColorSensor;
 
-    public RobotAbstractor(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
-        DcMotor FlMotor = hardwareMap.get(DcMotor.class, "fl");
-        DcMotor FrMotor = hardwareMap.get(DcMotor.class, "fr");
-        DcMotor BlMotor = hardwareMap.get(DcMotor.class, "bl");
-        DcMotor BrMotor = hardwareMap.get(DcMotor.class, "br");
-
-        IMU Imu = hardwareMap.get(IMU.class, "imu");
-
-        this.DriveSys = new Drive();
-        this.DriveSys.Init(FlMotor, FrMotor, BlMotor, BrMotor, gamepad1, gamepad2, Imu);
-
+    public RobotAbstractor(HardwareMap hardwareMap) {
         DcMotorEx OutLeft = (DcMotorEx)hardwareMap.get(DcMotor.class, "outl");
         DcMotorEx OutRight = (DcMotorEx)hardwareMap.get(DcMotor.class, "outr");
 
@@ -62,14 +51,12 @@ public class RobotAbstractor {
     }
 
     public void Update(double DeltaTime) {
-        this.DriveSys.Update(DeltaTime);
         this.OutTakeSys.Update(DeltaTime);
         this.IntakeSys.Update(DeltaTime);
         this.DecoderWheelSys.Update(DeltaTime);
     }
 
-    public void FullStop() {
-        this.DriveSys.Stop();
+    public void Stop() {
         this.OutTakeSys.Stop();
         this.IntakeSys.Stop();
     }
