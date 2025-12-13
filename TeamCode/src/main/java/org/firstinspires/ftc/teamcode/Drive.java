@@ -91,12 +91,16 @@ public class Drive {
 
     }
 
+    public void ResetIMU() {
+        this.OdometryController.ResetIMU();
+    }
+
     public void Update(double DeltaTime) {
         this.CurrentStateTimer -= DeltaTime;
 
         this.OdometryController.Update(DeltaTime);
 
-        if (this.Gamepad2.a) {
+        if (this.Gamepad2.left_bumper) {
             this.CurrentState = DriveState.E_STOP;
             this.CurrentStateTimer = 1;
         }

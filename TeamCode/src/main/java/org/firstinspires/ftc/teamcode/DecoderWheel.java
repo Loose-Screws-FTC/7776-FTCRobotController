@@ -101,6 +101,10 @@ public class DecoderWheel {
 //        this.Motor.setTargetPosition((int)(this.TargetAngle * TicksPerRev / 360.0));
     }
 
+    public BallColor GetBallColorAt(int pos) {
+        return this.BallsInWheel.get(pos);
+    }
+
     public boolean GetIsAtTarget() {
         return this.IsAtTarget;
     }

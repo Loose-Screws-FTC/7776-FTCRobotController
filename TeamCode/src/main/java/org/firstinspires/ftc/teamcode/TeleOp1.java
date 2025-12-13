@@ -20,8 +20,11 @@ public class TeleOp1 extends OpMode {
     public static final double REVOLVE_TIME = 0.1;
     public static final double REVOLVE_FINISH_TIME = 0.3;
 
-    public static double OuttakeRPM = 1500;
-    
+    public static double OuttakeRPMLow = 1550;
+    public static double OuttakeRPMHigh = 1675;
+    public double OuttakeRPMMultLow = 1;
+    public double OuttakeRPMMultHigh = 1;
+
     public RobotAbstractor Robot;
     public Drive DriveSys;
 
@@ -31,6 +34,7 @@ public class TeleOp1 extends OpMode {
 
     private boolean BallDetected = false;
     private boolean RotatedAfterIntaking = false;
+    private double BallColorTolerance = 0.006;
 
     private ElapsedTime runtime = new ElapsedTime();
     private double ballDetectTime = Double.POSITIVE_INFINITY;
@@ -68,7 +72,9 @@ public class TeleOp1 extends OpMode {
 
         // telemetry.addData("outtake power set", gamepad1.right_trigger);
         if (gamepad1.a) {
-            this.Robot.OutTakeSys.SetVelocity(OuttakeRPM / 6000.0);
+            this.Robot.OutTakeSys.SetVelocity(OuttakeRPMLow / 6000.0 * this.OuttakeRPMMultLow);
+        } else if (gamepad1.x) {
+            this.Robot.OutTakeSys.SetVelocity(OuttakeRPMHigh / 6000.0 * this.OuttakeRPMMultHigh);
         } else {
             this.Robot.OutTakeSys.SetVelocity(0);
         }
@@ -79,6 +85,21 @@ public class TeleOp1 extends OpMode {
         } else {
             this.Robot.OutTakeSys.ServosDown();
         }
+
+        if (gamepad2.a) {
+            this.OuttakeRPMMultLow -= 0.02 * DeltaTime;
+        }
+        if (gamepad2.y) {
+            this.OuttakeRPMMultLow += 0.02 * DeltaTime;
+        }
+        if (gamepad2.dpad_up) {
+            this.OuttakeRPMMultHigh += 0.015 * DeltaTime;
+        }
+        if (gamepad2.dpad_down) {
+            this.OuttakeRPMMultHigh -= 0.015 * DeltaTime;
+        }
+        telemetry.addData("Low RPM", this.OuttakeRPMMultLow * OuttakeRPMLow);
+        telemetry.addData("High RPM", this.OuttakeRPMMultHigh * OuttakeRPMHigh);
 
         boolean currentlyIntaking = gamepad1.right_bumper;
 
@@ -105,8 +126,17 @@ public class TeleOp1 extends OpMode {
             this.Robot.DecoderWheelSys.IntakeModeOff();
         }
 
-        this.Robot.IntakeSys.SetPower(currentlyIntaking || !this.Robot.DecoderWheelSys.GetIsAtTarget()
-            ? 1.0 : 0.0);
+        if (gamepad2.x) {
+            this.Robot.IntakeSys.ServosToIntake();
+            this.Robot.IntakeSys.SetPower(-1);
+        } else {
+            this.Robot.IntakeSys.SetPower(currentlyIntaking || !this.Robot.DecoderWheelSys.GetIsAtTarget()
+                ? 1.0 : 0.0);
+        }
+
+        if (gamepad2.b) {
+            this.DriveSys.ResetIMU();
+        }
 
         // if (gamepad1.right_bumper) {
         //     this.ShakePos += 0.5;
@@ -147,6 +177,10 @@ public class TeleOp1 extends OpMode {
         if (gamepad1.dpad_down) {
             this.Robot.DecoderWheelSys.RevolveToColor(DecoderWheel.BallColor.GREEN);
         }
+
+        telemetry.addData("p1bc", this.Robot.DecoderWheelSys.GetBallColorAt(0));
+        telemetry.addData("p2bc", this.Robot.DecoderWheelSys.GetBallColorAt(1));
+        telemetry.addData("p3bc", this.Robot.DecoderWheelSys.GetBallColorAt(2));
 
 //        if (gamepad1.left_trigger > 0.5) {
 //            this.TargetRPM -= 350 * DeltaTime;
@@ -193,7 +227,7 @@ public class TeleOp1 extends OpMode {
         // All three color values being compared to 0.01 will cause the system to trigger on essentially any object with color, should maybe be tuned for specific ball colors (or indexing could be handled elsewhere)
         NormalizedRGBA colors = this.Robot.ColorSensor.getNormalizedColors();
         if (Double.isInfinite(ballDetectTime)) {
-            if (colors.red > 0.01 || colors.green > 0.01 || colors.blue > 0.01) { // Color sensor values typically float between 0.001 and 0.002 when looking at nothing, and are normally between 0.01 and 0.03 for colored objects (depending on the color)
+            if (colors.red > this.BallColorTolerance || colors.green > this.BallColorTolerance || colors.blue > this.BallColorTolerance) { // Color sensor values typically float between 0.001 and 0.002 when looking at nothing, and are normally between 0.01 and 0.03 for colored objects (depending on the color)
                 this.Robot.DecoderWheelSys.SetIntakedColor(DecoderWheel.DetermineBallColor(colors));
                 this.BallDetected = true;
                 this.ballDetectTime = runtime.seconds();

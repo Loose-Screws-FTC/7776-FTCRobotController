@@ -57,6 +57,10 @@ public class Odometry {
         this.YOdom.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
+    public void ResetIMU() {
+        this.Imu.resetYaw();
+    }
+
     public void Update(double DeltaTime) {
         int CurrXOdomTicks = this.XOdom.getCurrentPosition();
         int CurrYOdomTicks = this.YOdom.getCurrentPosition();
