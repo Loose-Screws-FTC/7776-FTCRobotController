@@ -55,7 +55,7 @@ public class Intake {
 
     public void ServosToNeutral() {
         this.EnableServos();
-        this.SetServosToPos(-0.02);
+        this.SetServosToPos(0.01);
     }
 
     public void ServosToIntake() {

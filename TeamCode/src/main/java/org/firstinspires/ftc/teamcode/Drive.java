@@ -1,14 +1,22 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.TeleOp1.LeftDistance;
+import static org.firstinspires.ftc.teamcode.TeleOp1.RightDistance;
+
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Drive {
     public static Telemetry telemetry;
@@ -37,6 +45,7 @@ public class Drive {
     private Odometry OdometryController;
 
     private double limelightTx = 0;
+    private boolean BallTargetMode;
 
     public void setLimelightTx(double tx) {
         this.limelightTx = tx;
@@ -115,6 +124,8 @@ public class Drive {
             return;
         }
 
+
+
         if (this.CurrentMode == DriveMode.CONTROLLER_DRIVEN) {
             Vector2 DriveDirection = new Vector2(Gamepad1.left_stick_x, Gamepad1.left_stick_y);
             DriveDirection.MultNum(-1);
@@ -126,10 +137,24 @@ public class Drive {
                 DriveDirection.DivNum(2);
             }
 
-            double turnAmount;
+            double turnAmount = 0;
             if (this.AprilTagTargetMode) {
                 turnAmount = 0.025 * limelightTx;
-            } else {
+            }
+
+            else if (this.BallTargetMode &&
+                    !Double.isNaN(LeftDistance)
+            ) {
+                turnAmount = -0.3;
+            }
+
+            else if (this.BallTargetMode &&
+                    !Double.isNaN(RightDistance)
+            ) {
+                turnAmount = 0.3;
+            }
+
+            else {
                 turnAmount = Gamepad1.right_stick_x * Gamepad1.right_stick_x * Math.signum(Gamepad1.right_stick_x) * RotSpeedMult;
             }
 
@@ -152,6 +177,8 @@ public class Drive {
     public void SetTargetingAprilTag(boolean isTargeting){
         this.AprilTagTargetMode = isTargeting;
     }
+
+    public void SetTargetingBall(boolean isTargeting) {this.BallTargetMode = isTargeting;}
 
     public void SetDriveMode(DriveMode Mode) {
         this.CurrentMode = Mode;

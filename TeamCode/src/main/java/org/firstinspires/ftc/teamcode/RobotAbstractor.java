@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -17,6 +18,9 @@ public class RobotAbstractor {
     public final Limelight3A Limelight;
 
     public final NormalizedColorSensor ColorSensor;
+
+    public final DistanceSensor LeftDistanceSensor;
+    public final DistanceSensor RightDistanceSensor;
 
     public RobotAbstractor(HardwareMap hardwareMap) {
         DcMotorEx OutLeft = (DcMotorEx)hardwareMap.get(DcMotor.class, "outl");
@@ -44,6 +48,10 @@ public class RobotAbstractor {
         this.DecoderWheelSys.Init(DecoderWheelMotor);
 
         this.ColorSensor = hardwareMap.get(NormalizedColorSensor.class, "colorsensor");
+        this.LeftDistanceSensor = hardwareMap.get(DistanceSensor.class,"lintakesensor");
+        this.RightDistanceSensor = hardwareMap.get(DistanceSensor.class,"rintakesensor");
+
+
 
         this.Limelight = hardwareMap.get(Limelight3A.class, "limelight");
         this.Limelight.setPollRateHz(100);
