@@ -137,6 +137,8 @@ public class Drive {
                 DriveDirection.DivNum(2);
             }
 
+            double Rot = this.OdometryController.GetHeading();
+
             double turnAmount = 0;
             if (this.AprilTagTargetMode) {
                 turnAmount = 0.025 * limelightTx;
@@ -147,13 +149,17 @@ public class Drive {
             else if (this.BallTargetMode &&
                     !Double.isNaN(LeftDistance) && Double.isNaN(RightDistance)
             ) {
-                turnAmount = -0.3;
+                Vector2 Vect = new Vector2(Math.sin(Rot + Math.PI / 2), Math.cos(Rot + Math.PI / 2));
+                Vect.DivNum(3.5);
+                DriveDirection.AddVector2(Vect);
             }
 
             else if (this.BallTargetMode &&
                     !Double.isNaN(RightDistance) && Double.isNaN(LeftDistance)
             ) {
-                turnAmount = 0.3;
+                Vector2 Vect = new Vector2(Math.sin(Rot - Math.PI / 2), Math.cos(Rot - Math.PI / 2));
+                Vect.DivNum(3.5);
+                DriveDirection.AddVector2(Vect);
             }
 
             else {
