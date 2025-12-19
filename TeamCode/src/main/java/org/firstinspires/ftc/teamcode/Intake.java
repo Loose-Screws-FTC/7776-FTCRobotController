@@ -60,7 +60,7 @@ public class Intake {
 
     public void ServosToIntake() {
         this.EnableServos();
-        this.SetServosToPos(0.085);
+        this.SetServosToPos(0.09);
     }
 
     public void DisableServos() {

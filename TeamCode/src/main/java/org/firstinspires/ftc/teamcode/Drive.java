@@ -6,6 +6,7 @@ import static org.firstinspires.ftc.teamcode.TeleOp1.RightDistance;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -16,7 +17,11 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class Drive {
     public static Telemetry telemetry;
@@ -42,7 +47,13 @@ public class Drive {
     private double DriveSpeedMult = 1;
     private double RotSpeedMult = 1;
 
-    private Odometry OdometryController;
+    public static double MaintainRotP = 1;
+    public static double RotStoreSpeed = 0.05;
+
+    private double CurrentRot;
+    private double TargetRot = Double.NaN;
+
+    private IMU Imu;
 
     private double limelightTx = 0;
     private boolean BallTargetMode;
@@ -64,7 +75,7 @@ public class Drive {
         CONTROLLER_DRIVEN
     }
 
-    public void Init(DcMotor FlDrive, DcMotor FrDrive, DcMotor BlDrive, DcMotor BrDrive, Gamepad Gamepad1, Gamepad Gamepad2, IMU Imu2) {
+    public void Init(DcMotor FlDrive, DcMotor FrDrive, DcMotor BlDrive, DcMotor BrDrive, Gamepad Gamepad1, Gamepad Gamepad2, IMU Imu) {
         this.FlMotor = FlDrive;
         this.FrMotor = FrDrive;
         this.BlMotor = BlDrive;
@@ -95,19 +106,40 @@ public class Drive {
 
         this.CurrentStateTimer = 0;
 
-        this.OdometryController = new Odometry();
-        this.OdometryController.Init(this.BlMotor, this.FrMotor , Imu2);
+
+        IMU.Parameters IMUParameters = new IMU.Parameters(
+                new RevHubOrientationOnRobot(new Orientation(
+                        AxesReference.INTRINSIC,
+                        AxesOrder.ZYX,
+                        AngleUnit.RADIANS,
+                        0,
+                        0,
+                        (float)Math.PI / 4,
+                        0
+                ))
+        );
+
+        this.Imu = Imu;
+        this.Imu.initialize(IMUParameters);
+        this.Imu.resetYaw();
 
     }
 
     public void ResetIMU() {
-        this.OdometryController.ResetIMU();
+        this.Imu.resetYaw();
     }
 
     public void Update(double DeltaTime) {
         this.CurrentStateTimer -= DeltaTime;
 
-        this.OdometryController.Update(DeltaTime);
+        CurrentRot = this.Imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+
+        if (Double.isNaN(TargetRot)) {
+            double yRotVel = this.Imu.getRobotAngularVelocity(AngleUnit.RADIANS).yRotationRate;
+            if (Math.abs(yRotVel) < RotStoreSpeed) {
+                TargetRot = CurrentRot;
+            }
+        }
 
         if (this.Gamepad2.left_bumper) {
             this.CurrentState = DriveState.E_STOP;
@@ -124,8 +156,6 @@ public class Drive {
             return;
         }
 
-
-
         if (this.CurrentMode == DriveMode.CONTROLLER_DRIVEN) {
             Vector2 DriveDirection = new Vector2(Gamepad1.left_stick_x, Gamepad1.left_stick_y);
             DriveDirection.MultNum(-1);
@@ -137,8 +167,6 @@ public class Drive {
                 DriveDirection.DivNum(2);
             }
 
-            double Rot = this.OdometryController.GetHeading();
-
             double turnAmount = 0;
             if (this.AprilTagTargetMode) {
                 turnAmount = 0.025 * limelightTx;
@@ -149,7 +177,7 @@ public class Drive {
             else if (this.BallTargetMode &&
                     !Double.isNaN(LeftDistance) && Double.isNaN(RightDistance)
             ) {
-                Vector2 Vect = new Vector2(Math.sin(Rot + Math.PI / 2), Math.cos(Rot + Math.PI / 2));
+                Vector2 Vect = new Vector2(Math.sin(CurrentRot + Math.PI / 2), Math.cos(CurrentRot + Math.PI / 2));
                 Vect.DivNum(3.5);
                 DriveDirection.AddVector2(Vect);
             }
@@ -157,13 +185,14 @@ public class Drive {
             else if (this.BallTargetMode &&
                     !Double.isNaN(RightDistance) && Double.isNaN(LeftDistance)
             ) {
-                Vector2 Vect = new Vector2(Math.sin(Rot - Math.PI / 2), Math.cos(Rot - Math.PI / 2));
+                Vector2 Vect = new Vector2(Math.sin(CurrentRot - Math.PI / 2), Math.cos(CurrentRot - Math.PI / 2));
                 Vect.DivNum(3.5);
                 DriveDirection.AddVector2(Vect);
-            }
-
-            else {
+            } else if (Math.abs(Gamepad1.right_stick_x) > 0.01) {
                 turnAmount = Gamepad1.right_stick_x * Gamepad1.right_stick_x * Math.signum(Gamepad1.right_stick_x) * RotSpeedMult;
+                TargetRot = Double.NaN;
+            } else if (!Double.isNaN(TargetRot)) {
+                turnAmount = (CurrentRot - TargetRot) * MaintainRotP;
             }
 
             MoveInGlobalDirectionAndTurn(DriveDirection.GetNormal(), DriveDirection.GetMagnitude(), turnAmount, 1);
@@ -217,11 +246,9 @@ public class Drive {
      * @param Time How long the bot will move for.
      */
     public void MoveInGlobalDirectionAndTurn(Vector2 MoveDirection, double Speed, double TurnAmount, double Time) {
-        double Rot = this.OdometryController.GetHeading();
-
         Vector2 LocalMoveDirection = new Vector2(
-                MoveDirection.GetX() * Math.cos(Rot) - MoveDirection.GetY() * Math.sin(Rot),
-                MoveDirection.GetX() * Math.sin(Rot) + MoveDirection.GetY() * Math.cos(Rot)
+                MoveDirection.GetX() * Math.cos(CurrentRot) - MoveDirection.GetY() * Math.sin(CurrentRot),
+                MoveDirection.GetX() * Math.sin(CurrentRot) + MoveDirection.GetY() * Math.cos(CurrentRot)
         );
 
         MoveInLocalDirectionAndTurn(LocalMoveDirection, Speed, TurnAmount, Time);
