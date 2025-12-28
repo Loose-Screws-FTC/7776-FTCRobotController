@@ -1,13 +1,22 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.roadrunner.AccelConstraint;
+import com.acmerobotics.roadrunner.AngularVelConstraint;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.InstantFunction;
+import com.acmerobotics.roadrunner.MinVelConstraint;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.ProfileAccelConstraint;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Twist2d;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.ftc.Actions;
+import com.acmerobotics.roadrunner.ftc.DriveType;
+import com.acmerobotics.roadrunner.ftc.DriveView;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -15,6 +24,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
+
+import java.util.List;
 
 @Autonomous
 public class AutoTest3Blue extends LinearOpMode {
@@ -77,93 +88,73 @@ public class AutoTest3Blue extends LinearOpMode {
 
             waitForStart();
 
-//            Actions.runBlocking(
-//                new ParallelAction(
-//                    new UpdateAction(this.DecoderWheelController::Update),
-//                    new SequentialAction(
-//                        new InstantAction(() -> this.DecoderWheelController.IntakeModeOn()),
-//                        new InstantAction(() -> this.IntakeController.SetPower(1)),
-//                        new InstantAction(() -> this.IntakeController.ServosToIntake()),
-//                        drive.actionBuilder(beginPose)
-//                            .splineTo(new Vector2d(28, 0), 0)
-//                            .build(),
-//                        new SleepAction(0.5),
-//                        new InstantAction(() -> this.DecoderWheelController.RevolveLeft()),
-//                        new InstantAction(() -> this.DecoderWheelController.IntakeModeOff()),
-//                        new InstantAction(() -> this.IntakeController.SetPower(1)),
-//                        new InstantAction(() -> this.IntakeController.ServosToNeutral()),
-//                        new InstantAction(() -> this.DecoderWheelController.IntakeModeOn()),
-//                        new SleepAction(0.5),
-//                        new InstantAction(() -> this.IntakeController.SetPower(1)),
-//                        new InstantAction(() -> this.IntakeController.ServosToIntake()),
-//                        drive.actionBuilder(beginPose.plus(new Twist2d(new Vector2d(28, 0), 0)))
-//                            .turn(Math.PI / 2)
-//                            .lineToY(24)
-//                            .build(),
-//                        new SleepAction(0.5),
-//                        new InstantAction(() -> this.IntakeController.SetPower(0)),
-//                        new InstantAction(() -> this.IntakeController.ServosToNeutral()),
-//                        new InstantAction(() -> this.DecoderWheelController.IntakeModeOff()),
-//                        drive.actionBuilder(beginPose)
-//                            .splineToSplineHeading(new Pose2d(0.1, 0.1, 0), 0)
-//                            .build(),
-//                        new InstantAction(() -> this.OutTakeController.SetVelocity(2000)),
-//                        new InstantAction(() -> this.IntakeController.SetPower(0)),
-//                        new InstantAction(() -> this.IntakeController.ServosToNeutral()),
-//                        new SleepAction(4),
-//                        new InstantAction(() -> this.OutTakeController.ServosUp()),
-//                        new SleepAction(0.2),
-//                        new InstantAction(() -> this.OutTakeController.ServosDown()),
-//                        new SleepAction(0.2),
-//                        new InstantAction(() -> this.DecoderWheelController.RevolveLeft()),
-//                        new InstantAction(() -> this.IntakeController.SetPower(1)),
-//                        new InstantAction(() -> this.IntakeController.ServosToNeutral()),
-//                        new SleepAction(0.6),
-//                        new InstantAction(() -> this.IntakeController.SetPower(0)),
-//                        new InstantAction(() -> this.IntakeController.ServosToNeutral()),
-//                        new InstantAction(() -> this.OutTakeController.ServosUp()),
-//                        new SleepAction(0.2),
-//                        new InstantAction(() -> this.OutTakeController.ServosDown()),
-//                        new InstantAction(() -> this.OutTakeController.SetVelocity(0))
-//                    )
-//                )
-//            );
+            VelConstraint SlowVel = new MinVelConstraint(List.of(
+                    drive.kinematics.new WheelVelConstraint(10.0),
+                    new AngularVelConstraint(Math.toRadians(90))
+            ));
+
+            AccelConstraint SlowAccel = new ProfileAccelConstraint(-20.0, 20.0);
 
             Actions.runBlocking(
                 new ParallelAction(
                     new UpdateAction(this.DecoderWheelController::Update),
+                    new UpdateAction(this.IntakeController::Update),
                     new SequentialAction(
                         drive.actionBuilder(beginPose)
-                            .strafeTo(new Vector2d(67.8822509939, 0))
+                            .strafeTo(new Vector2d(40, 24), SlowVel, SlowAccel)
+                            .turn(40 * Math.PI / 180)
                             .build(),
 
                         new InstantAction(() -> this.IntakeController.SetPower(1)),
-                        new InstantAction(() -> this.IntakeController.ServosToNeutral()),
-                        new InstantAction(() -> this.OutTakeController.SetVelocity(1550 / 6000.0)),
-                        new SleepAction(3),
-                        new InstantAction(() -> this.OutTakeController.ServosUp()),
-                        new SleepAction(0.5),
-                        new InstantAction(() -> this.OutTakeController.ServosDown()),
-                        new SleepAction(0.5),
-                        new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
-                        new SleepAction(1),
-                        new InstantAction(() -> this.OutTakeController.ServosUp()),
-                        new SleepAction(0.5),
-                        new InstantAction(() -> this.OutTakeController.ServosDown()),
-                        new SleepAction(0.5),
-                        new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
-                        new SleepAction(1),
-                        new InstantAction(() -> this.OutTakeController.ServosUp()),
-                        new SleepAction(0.5),
-                        new InstantAction(() -> this.OutTakeController.ServosDown()),
-                        new SleepAction(0.5),
-                        new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
-                        new SleepAction(1),
-                        new InstantAction(() -> this.OutTakeController.SetVelocity(0)),
+//                        new InstantAction(() -> this.IntakeController.ServosToNeutral()),
+//                        new InstantAction(() -> this.OutTakeController.SetVelocity(1550 / 6000.0)),
+//                        new SleepAction(3),
+//                        new InstantAction(() -> this.OutTakeController.ServosUp()),
+//                        new SleepAction(0.5),
+//                        new InstantAction(() -> this.OutTakeController.ServosDown()),
+//                        new SleepAction(1),
+//                        new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
+//                        new SleepAction(1),
+//                        new InstantAction(() -> this.OutTakeController.ServosUp()),
+//                        new SleepAction(0.5),
+//                        new InstantAction(() -> this.OutTakeController.ServosDown()),
+//                        new SleepAction(1),
+//                        new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
+//                        new SleepAction(1),
+//                        new InstantAction(() -> this.OutTakeController.ServosUp()),
+//                        new SleepAction(0.5),
+//                        new InstantAction(() -> this.OutTakeController.ServosDown()),
+//                        new SleepAction(1),
+//                        new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
+//                        new SleepAction(1),
+//                        new InstantAction(() -> this.OutTakeController.SetVelocity(0)),
+//                        new InstantAction(() -> this.IntakeController.SetPower(0)),
 
-                        drive.actionBuilder(beginPose.plus(new Twist2d(new Vector2d(67.8822509939, 0), 0)))
-                            .strafeTo(new Vector2d(67.8822509939, 0))
-                            .turn(45 * Math.PI / 180)
+                        drive.actionBuilder()
+                            .strafeTo(new Vector2d(50, 12), SlowVel, SlowAccel)
+                            .turnTo(-90 * Math.PI / 180)
+                            .build(),
+
+//                        new InstantAction(() -> this.IntakeController.SetPower(1)),
+//                        new InstantAction(() -> this.IntakeController.ServosToIntake()),
+//                        new InstantAction(() -> this.DecoderWheelController.IntakeModeOn()),
+
+                        drive.actionBuilder(drive.localizer.getPose())
+                            .strafeTo(new Vector2d(50, 0), SlowVel, SlowAccel)
+                            .build(),
+
+//                        new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
+
+                        drive.actionBuilder(drive.localizer.getPose())
+                            .strafeTo(new Vector2d(50, -5), SlowVel, SlowAccel)
+                            .build(),
+
+                        drive.actionBuilder(drive.localizer.getPose())
+                            .strafeTo(new Vector2d(0, 0), SlowVel, SlowAccel)
+                            .build(),
+
+                        drive.actionBuilder(drive.localizer.getPose())
+                            .strafeTo(new Vector2d(0, 0), SlowVel, SlowAccel)
                             .build()
                     )
                 )

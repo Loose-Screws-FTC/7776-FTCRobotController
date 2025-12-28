@@ -132,6 +132,7 @@ public class AutoTest3Red extends LinearOpMode {
             Actions.runBlocking(
                 new ParallelAction(
                     new UpdateAction(this.DecoderWheelController::Update),
+                    new UpdateAction(this.IntakeController::Update),
                     new SequentialAction(
                         drive.actionBuilder(beginPose)
                             .strafeTo(new Vector2d(67.8822509939, 0))
@@ -160,6 +161,7 @@ public class AutoTest3Red extends LinearOpMode {
                         new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
                         new SleepAction(1),
                         new InstantAction(() -> this.OutTakeController.SetVelocity(0)),
+                        new InstantAction(() -> this.IntakeController.SetPower(0)),
 
                         drive.actionBuilder(beginPose.plus(new Twist2d(new Vector2d(67.8822509939, 0), 0)))
                             .strafeTo(new Vector2d(67.8822509939, 0))

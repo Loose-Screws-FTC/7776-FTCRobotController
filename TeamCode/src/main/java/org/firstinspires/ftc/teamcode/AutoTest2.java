@@ -142,8 +142,8 @@ public class AutoTest2 extends LinearOpMode {
                             .turn(Math.PI / 2)
                             .build(),
 
-                        new InstantAction(() -> this.IntakeController.SetPower(1)),
-                        new InstantAction(() -> this.IntakeController.ServosToIntake()),
+                            new InstantAction(() -> this.IntakeController.SetPower(1)),
+                            new InstantAction(() -> this.IntakeController.ServosToIntake()),
                         new InstantAction(() -> this.DecoderWheelController.IntakeModeOn()),
 
                         drive.actionBuilder(drive.localizer.getPose())
