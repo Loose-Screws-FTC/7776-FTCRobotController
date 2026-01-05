@@ -1,22 +1,24 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.roadrunner.AccelConstraint;
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.AngularVelConstraint;
+import com.acmerobotics.roadrunner.Arclength;
 import com.acmerobotics.roadrunner.InstantAction;
-import com.acmerobotics.roadrunner.InstantFunction;
 import com.acmerobotics.roadrunner.MinVelConstraint;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.ProfileAccelConstraint;
+import com.acmerobotics.roadrunner.Pose2dDual;
+import com.acmerobotics.roadrunner.PosePath;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Twist2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.ftc.Actions;
-import com.acmerobotics.roadrunner.ftc.DriveType;
-import com.acmerobotics.roadrunner.ftc.DriveView;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -25,17 +27,14 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 @Autonomous
 public class AutoTest3Blue extends LinearOpMode {
-//    private Drive DriveController;
     private Intake IntakeController;
     private DecoderWheel DecoderWheelController;
     private OutTake OutTakeController;
-
-    private int AutoStep = -1;
-    private double AutoStepTimer = 0;
 
     @Override
     public void runOpMode() {
@@ -46,123 +45,145 @@ public class AutoTest3Blue extends LinearOpMode {
             return;
         }
 
-//        DcMotor FlMotor = hardwareMap.get(DcMotor.class, "fl");
-//        DcMotor FrMotor = hardwareMap.get(DcMotor.class, "fr");
-//        DcMotor BlMotor = hardwareMap.get(DcMotor.class, "bl");
-//        DcMotor BrMotor = hardwareMap.get(DcMotor.class, "br");
-//
-//        IMU Imu = hardwareMap.get(IMU.class, "imu");
-//
-//        // init DiveController for controller drive
-//        this.DriveController = new Drive();
-//        this.DriveController.Init(FlMotor, FrMotor, BlMotor, BrMotor, gamepad1, gamepad2, Imu);
-//        this.DriveController.SetDriveMode(Drive.DriveMode.MANUAL);
-
+        // Initialize hardware
         Servo InLeftServo = hardwareMap.get(Servo.class, "intakelefts");
         Servo InRightServo = hardwareMap.get(Servo.class, "intakerights");
-
         DcMotor InMotor = hardwareMap.get(DcMotor.class, "intake");
-
         this.IntakeController = new Intake();
         this.IntakeController.Init(InLeftServo, InRightServo, InMotor);
-
         DcMotor DecoderWheelMotor = hardwareMap.get(DcMotor.class, "ringdrive");
-
         this.DecoderWheelController = new DecoderWheel();
         this.DecoderWheelController.Init(DecoderWheelMotor);
-
         DcMotorEx OutLeft = (DcMotorEx) hardwareMap.get(DcMotor.class, "outl");
         DcMotorEx OutRight = (DcMotorEx) hardwareMap.get(DcMotor.class, "outr");
-
         Servo OutLeftServo = hardwareMap.get(Servo.class, "outservol");
         Servo OutRightServo = hardwareMap.get(Servo.class, "outservor");
-
         Servo TiltServo = hardwareMap.get(Servo.class, "tiltservo");
-
         this.OutTakeController = new OutTake();
         this.OutTakeController.Init(OutLeft, OutRight, OutLeftServo, OutRightServo, TiltServo);
 
-        Pose2d beginPose = new Pose2d(0, 0, 0);
         if (TuningOpModes.DRIVE_CLASS.equals(MecanumDrive.class)) {
-            MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
+            // Assumes all ball slots are empty
+            double IntakeBallStepsTimeToWait = 0.1;
+            SequentialAction IntakeBallsStep1 = new SequentialAction(
+                new InstantAction(() -> this.IntakeController.SetPower(1)),
+                new InstantAction(() -> this.IntakeController.ServosToIntake()),
+                new InstantAction(() -> this.DecoderWheelController.IntakeModeOn()),
+                new SleepAction(IntakeBallStepsTimeToWait)
+            );
+            SequentialAction IntakeBallsStep2 = new SequentialAction(
+                new SleepAction(IntakeBallStepsTimeToWait),
+                new InstantAction(() -> IntakeController.ServosToNeutral()),
+                new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
+                new SleepAction(IntakeBallStepsTimeToWait),
+                new InstantAction(() -> IntakeController.ServosToIntake())
+            );
+            SequentialAction IntakeBallsStep3 = new SequentialAction(
+                new SleepAction(IntakeBallStepsTimeToWait),
+                new InstantAction(() -> IntakeController.ServosToNeutral()),
+                new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
+                new SleepAction(IntakeBallStepsTimeToWait),
+                new InstantAction(() -> IntakeController.ServosToIntake())
+            );
+            SequentialAction IntakeBallsStep4 = new SequentialAction(
+                new SleepAction(IntakeBallStepsTimeToWait),
+                new InstantAction(() -> IntakeController.ServosToNeutral()),
+                new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
+                new InstantAction(() -> this.DecoderWheelController.IntakeModeOff()),
+                new InstantAction(() -> this.IntakeController.SetPower(0)),
+                new InstantAction(() -> this.IntakeController.ServosToNeutral()),
+                new SleepAction(IntakeBallStepsTimeToWait)
+            );
 
-            waitForStart();
-
-            VelConstraint SlowVel = new MinVelConstraint(List.of(
-                    drive.kinematics.new WheelVelConstraint(10.0),
-                    new AngularVelConstraint(Math.toRadians(90))
+            VelConstraint SlowVel = new MinVelConstraint(Arrays.asList(
+                new TranslationalVelConstraint(10.0),
+                new AngularVelConstraint(Math.toRadians(45))
             ));
 
-            AccelConstraint SlowAccel = new ProfileAccelConstraint(-20.0, 20.0);
+            Pose2d beginPose = new Pose2d(0, 0, 0);
+            MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
+            Action MainActionChain = drive.actionBuilder(beginPose)
+                // vvv Put moves and actions here vvv
 
+                // Move to goal, then shoot all the preloaded balls
+//                .strafeTo(new Vector2d(31, 9))
+//                .turnTo(Math.toRadians(45))
+                .splineToLinearHeading(new Pose2d(31, 9, Math.toRadians(45)), 0)
+                .stopAndAdd(ShootAllBalls())
+
+                // Intake first line of balls
+//                .strafeTo(new Vector2d(51.5, 10))
+//                .turnTo(Math.toRadians(-90))
+                .splineToLinearHeading(new Pose2d(48.5, 8, Math.toRadians(-90)), 0)
+                .stopAndAdd(IntakeBallsStep1)
+                .strafeTo(new Vector2d(48.5, -1), SlowVel)
+                .stopAndAdd(IntakeBallsStep2)
+                .strafeTo(new Vector2d(48.5, -6), SlowVel)
+                .stopAndAdd(IntakeBallsStep3)
+                .strafeTo(new Vector2d(48.5, -11), SlowVel)
+                .stopAndAdd(IntakeBallsStep4)
+
+                // Move to goal, then shoot all the collected balls
+//                .strafeTo(new Vector2d(31, 9))
+//                .turnTo(Math.toRadians(45))
+                .splineToLinearHeading(new Pose2d(31, 9, Math.toRadians(45)), Math.toRadians(90))
+                .stopAndAdd(ShootAllBalls())
+
+                // Return to start for now
+                .splineToLinearHeading(new Pose2d(10, 0, Math.toRadians(0)), Math.toRadians(180))
+                .strafeTo(new Vector2d(0, 0))
+
+                // Stop
+                .stopAndAdd(new InstantAction(() -> this.OutTakeController.Stop()))
+                .stopAndAdd(new InstantAction(() -> this.IntakeController.Stop()))
+
+                .build();
+
+            // Start the auto
+            waitForStart();
             Actions.runBlocking(
                 new ParallelAction(
                     new UpdateAction(this.DecoderWheelController::Update),
                     new UpdateAction(this.IntakeController::Update),
                     new SequentialAction(
-                        drive.actionBuilder(beginPose)
-                            .strafeTo(new Vector2d(40, 24), SlowVel, SlowAccel)
-                            .turn(40 * Math.PI / 180)
-                            .build(),
-
-                        new InstantAction(() -> this.IntakeController.SetPower(1)),
-//                        new InstantAction(() -> this.IntakeController.ServosToNeutral()),
-//                        new InstantAction(() -> this.OutTakeController.SetVelocity(1550 / 6000.0)),
-//                        new SleepAction(3),
-//                        new InstantAction(() -> this.OutTakeController.ServosUp()),
-//                        new SleepAction(0.5),
-//                        new InstantAction(() -> this.OutTakeController.ServosDown()),
-//                        new SleepAction(1),
-//                        new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
-//                        new SleepAction(1),
-//                        new InstantAction(() -> this.OutTakeController.ServosUp()),
-//                        new SleepAction(0.5),
-//                        new InstantAction(() -> this.OutTakeController.ServosDown()),
-//                        new SleepAction(1),
-//                        new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
-//                        new SleepAction(1),
-//                        new InstantAction(() -> this.OutTakeController.ServosUp()),
-//                        new SleepAction(0.5),
-//                        new InstantAction(() -> this.OutTakeController.ServosDown()),
-//                        new SleepAction(1),
-//                        new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
-//                        new SleepAction(1),
-//                        new InstantAction(() -> this.OutTakeController.SetVelocity(0)),
-//                        new InstantAction(() -> this.IntakeController.SetPower(0)),
-
-                        drive.actionBuilder()
-                            .strafeTo(new Vector2d(50, 12), SlowVel, SlowAccel)
-                            .turnTo(-90 * Math.PI / 180)
-                            .build(),
-
-//                        new InstantAction(() -> this.IntakeController.SetPower(1)),
-//                        new InstantAction(() -> this.IntakeController.ServosToIntake()),
-//                        new InstantAction(() -> this.DecoderWheelController.IntakeModeOn()),
-
-                        drive.actionBuilder(drive.localizer.getPose())
-                            .strafeTo(new Vector2d(50, 0), SlowVel, SlowAccel)
-                            .build(),
-
-//                        new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
-
-                        drive.actionBuilder(drive.localizer.getPose())
-                            .strafeTo(new Vector2d(50, -5), SlowVel, SlowAccel)
-                            .build(),
-
-                        drive.actionBuilder(drive.localizer.getPose())
-                            .strafeTo(new Vector2d(0, 0), SlowVel, SlowAccel)
-                            .build(),
-
-                        drive.actionBuilder(drive.localizer.getPose())
-                            .strafeTo(new Vector2d(0, 0), SlowVel, SlowAccel)
-                            .build()
+                        MainActionChain
                     )
                 )
             );
-
-
         } else {
             throw new RuntimeException();
         }
+    }
+
+    private SequentialAction ShootAllBalls() {
+        double RampUpTime = 2.5;
+        double ServoWaitTime = 0.3;
+        double RevolveTime = 0.4;
+        return new SequentialAction(
+            new InstantAction(() -> IntakeController.SetPower(1)),
+            new InstantAction(() -> IntakeController.ServosToNeutral()),
+            new InstantAction(() -> OutTakeController.SetVelocity(1550 / 6000.0)),
+            new SleepAction(RampUpTime),
+            new InstantAction(() -> OutTakeController.ServosUp()),
+            new SleepAction(ServoWaitTime),
+            new InstantAction(() -> OutTakeController.ServosDown()),
+            new SleepAction(ServoWaitTime),
+            new InstantAction(() -> DecoderWheelController.RevolveRight()),
+            new SleepAction(RevolveTime),
+            new InstantAction(() -> OutTakeController.ServosUp()),
+            new SleepAction(ServoWaitTime),
+            new InstantAction(() -> OutTakeController.ServosDown()),
+            new SleepAction(ServoWaitTime),
+            new InstantAction(() -> DecoderWheelController.RevolveRight()),
+            new SleepAction(RevolveTime),
+            new InstantAction(() -> OutTakeController.ServosUp()),
+            new SleepAction(ServoWaitTime),
+            new InstantAction(() -> OutTakeController.ServosDown()),
+            new SleepAction(ServoWaitTime),
+            new InstantAction(() -> DecoderWheelController.RevolveRight()),
+            new SleepAction(RevolveTime),
+            new InstantAction(() -> OutTakeController.SetVelocity(0)),
+            new InstantAction(() -> IntakeController.SetPower(0))
+        );
     }
 }
