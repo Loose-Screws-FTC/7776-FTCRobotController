@@ -67,7 +67,7 @@ public class AutoTest3Red extends LinearOpMode {
 
             AutoSteps StepsBuilder = new AutoSteps(MainActionBuilder, intakeController, outTakeController, decoderWheelController);
 
-            Action MainActionChain = StepsBuilder.BuildAndGetActionBuilder(true);
+            Action MainActionChain = StepsBuilder.BuildAndGetActionBuilder("Red");
 
             // Start the auto
             waitForStart();
@@ -75,6 +75,7 @@ public class AutoTest3Red extends LinearOpMode {
                     new ParallelAction(
                             new UpdateAction(decoderWheelController::Update),
                             new UpdateAction(intakeController::Update),
+                            new UpdateAction(this::TelemetryUpdate),
                             new SequentialAction(
                                     MainActionChain
                             )
@@ -83,5 +84,10 @@ public class AutoTest3Red extends LinearOpMode {
         } else {
             throw new RuntimeException();
         }
+    }
+
+    public void TelemetryUpdate(double DeltaTime) {
+        telemetry.addData("should flip", "yes");
+        telemetry.update();
     }
 }

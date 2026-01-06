@@ -21,6 +21,7 @@ public class AutoSteps {
     Intake IntakeController;
     OutTake OutTakeController;
     DecoderWheel DecoderWheelController;
+    String BaseColor = "Blue";
 
     public AutoSteps(TrajectoryActionBuilder ActionBuilder, Intake IntakeController, OutTake OutTakeController, DecoderWheel DecoderWheelController) {
         CurrentActionBuilder = ActionBuilder;
@@ -29,7 +30,9 @@ public class AutoSteps {
         this.DecoderWheelController = DecoderWheelController;
     }
 
-    public Action BuildAndGetActionBuilder(boolean ShouldFlip) {
+    public Action BuildAndGetActionBuilder(String AllianceColor) {
+        boolean ShouldFlip = !AllianceColor.equals(BaseColor);
+
         Poses.add(new Pose2d(31, 9, Math.toRadians(45)));
         Poses.add(new Pose2d(48.5, 8, Math.toRadians(-90)));
         Poses.add(new Pose2d(48.5, -1, Math.toRadians(-90)));
@@ -111,7 +114,13 @@ public class AutoSteps {
         for (int i = 0; i < Poses.size(); i++) {
             Pose2d Pose = Poses.get(i);
 
-            Pose.times(new Pose2d(1, -1, 1));
+            Pose2d NewPose = new Pose2d(
+                Pose.position.x,
+                -Pose.position.y,
+                -Pose.heading.real
+            );
+
+            Poses.set(i, NewPose);
         }
     }
 
