@@ -75,6 +75,7 @@ public class AutoTest3Red extends LinearOpMode {
                     new ParallelAction(
                             new UpdateAction(decoderWheelController::Update),
                             new UpdateAction(intakeController::Update),
+                            new UpdateAction(outTakeController::Update),
                             new UpdateAction(this::TelemetryUpdate),
                             new SequentialAction(
                                     MainActionChain
