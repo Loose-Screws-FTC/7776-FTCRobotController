@@ -61,7 +61,7 @@ public class AutoTest3Red extends LinearOpMode {
         outTakeController.Init(OutLeft, OutRight, OutLeftServo, OutRightServo, TiltServo);
 
         if (TuningOpModes.DRIVE_CLASS.equals(MecanumDrive.class)) {
-            Pose2d beginPose = new Pose2d(0, 0, 0);
+            Pose2d beginPose = new Pose2d(1, 7, 0);
             MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
             TrajectoryActionBuilder MainActionBuilder = drive.actionBuilder(beginPose);
 

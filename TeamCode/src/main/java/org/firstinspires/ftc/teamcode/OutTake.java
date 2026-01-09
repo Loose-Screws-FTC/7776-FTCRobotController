@@ -20,25 +20,20 @@ public class OutTake {
     private Servo LServ;
     private Servo RServ;
 
-    private Servo TiltServo;
-
     private double LeftTicksPerRev = 28;
     private double RightTicksPerRev = 28;
 
-    private double LastLRevs = 0;
-    private double LastRRevs = 0;
-
     private double ApproxMaxRPM = 6000;
-
-    private double PowerChangeSpeed = 1;
-
-    private double LPower = 1;
-    private double RPower = 1;
     // private double WantedRPM = 5100;
     // private boolean RunningToRPM = false;
 
-    private boolean ReachedTargetRPM = false;
-    private double ReachingTargetRPM = 0; // RPM
+    private double MaxTicksPerSecond = 28.0 / (60.0 / ApproxMaxRPM);
+
+    private double VelocityMargin = 0.01;
+
+    private double TargetVelocity = 0;
+
+    private boolean AreServosUp = false;
 
     public static final double NEW_P = 180;
     public static final double NEW_I = 50;
@@ -60,16 +55,13 @@ public class OutTake {
         RMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         LMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        RMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        RMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         LServ = LeftServo;
         RServ = RightServo;
 
         LServ.setDirection(Servo.Direction.REVERSE);
         RServ.setDirection(Servo.Direction.FORWARD);
-
-        this.TiltServo = TiltServo;
-        this.TiltServo.setPosition(TILT_SERVO_DEFAULT_POS);
     }
 
     public void Update(double DeltaTime) {
@@ -116,25 +108,33 @@ public class OutTake {
 
         Globals.telemetry.addData("Left RPM", LeftMsg);
         Globals.telemetry.addData("Right RPM", RightMsg);
-        Globals.telemetry.addData("LPower", this.LPower);
-        Globals.telemetry.addData("RPower", this.RPower);
+        // Globals.telemetry.addData("LPower", this.LPower);
+        // Globals.telemetry.addData("RPower", this.RPower);
 
         TelemetryPacket packet = new TelemetryPacket();
 //        packet.put("LeftTicks", LeftTicks);
 //        packet.put("RightTicks", RightTicks);
         packet.put("LeftRPM", LeftRPM);
         packet.put("RightRPM", RightRPM);
-        packet.put("DeltaTime", DeltaTime * 100000);
+        packet.put("ArmsUp", AreServosUp ? 1.0 : 0.0);
         FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
-        LastLRevs = LRevs;
-        LastRRevs = RRevs;
+        // LastLRevs = LRevs;
+        // LastRRevs = RRevs;
     }
 
     public void SetVelocity(double Velocity) {
-        double MaxTicksPerSecond = 28.0 / (60.0 / ApproxMaxRPM);
+        this.TargetVelocity = Velocity;
         LMotor.setVelocity(Velocity * MaxTicksPerSecond);
         RMotor.setVelocity(Velocity * MaxTicksPerSecond);
+    }
+
+    public double GetCurrentVelocity() {
+        return (LMotor.getVelocity() / MaxTicksPerSecond + RMotor.getVelocity() / MaxTicksPerSecond) / 2;
+    }
+
+    public boolean IsAtVelocity() {
+        return Math.abs(GetCurrentVelocity() - TargetVelocity) < VelocityMargin;
     }
 
 //    public void RunToRPM(double RPM) {
@@ -160,11 +160,13 @@ public class OutTake {
 //    }
 
     public void ServosUp() {
+        AreServosUp = true;
         LServ.setPosition(0.625);
         RServ.setPosition(0.625);
     }
 
     public void ServosDown() {
+        AreServosUp = false;
         LServ.setPosition(0.49);
         RServ.setPosition(0.475);
     }

@@ -96,6 +96,9 @@ public final class MecanumDrive {
         public double axialVelGain = 0.5;
         public double lateralVelGain = 0.5;
         public double headingVelGain = 0.5; // shared with turn
+
+        public double maxHeadingError = Math.toRadians(2);
+        public double maxPositionError = 1;
     }
 
     public static Params PARAMS = new Params();
@@ -322,7 +325,9 @@ public final class MecanumDrive {
 
             Pose2d error = txWorldTarget.value().minusExp(localizer.getPose());
 
-            if (t >= timeTrajectory.duration) {
+            if (t >= timeTrajectory.duration
+                && error.position.sqrNorm() < PARAMS.maxPositionError * PARAMS.maxPositionError
+                && Math.abs(error.heading.toDouble()) < PARAMS.maxHeadingError) {
                 leftFront.setPower(0);
                 leftBack.setPower(0);
                 rightBack.setPower(0);
@@ -356,13 +361,13 @@ public final class MecanumDrive {
             rightBack.setPower(rightBackPower);
             rightFront.setPower(rightFrontPower);
 
-            p.put("x", localizer.getPose().position.x);
-            p.put("y", localizer.getPose().position.y);
-            p.put("heading (deg)", Math.toDegrees(localizer.getPose().heading.toDouble()));
+            Globals.telemetry.addData("x", localizer.getPose().position.x);
+            Globals.telemetry.addData("y", localizer.getPose().position.y);
+            Globals.telemetry.addData("heading (deg)", Math.toDegrees(localizer.getPose().heading.toDouble()));
 
-            p.put("xError", error.position.x);
-            p.put("yError", error.position.y);
-            p.put("headingError (deg)", Math.toDegrees(error.heading.toDouble()));
+            Globals.telemetry.addData("xError", error.position.x);
+            Globals.telemetry.addData("yError", error.position.y);
+            Globals.telemetry.addData("headingError (deg)", Math.toDegrees(error.heading.toDouble()));
 
             // only draw when active; only one drive action should be active at a time
             Canvas c = p.fieldOverlay();

@@ -6,9 +6,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -144,7 +142,7 @@ public class TeleOp1 extends OpMode {
             this.Robot.IntakeSys.ServosToIntake();
             this.Robot.IntakeSys.SetPower(-1);
         } else {
-            this.Robot.IntakeSys.SetPower(currentlyIntaking || !this.Robot.DecoderWheelSys.GetIsAtTarget()
+            this.Robot.IntakeSys.SetPower(currentlyIntaking || !this.Robot.DecoderWheelSys.IsAtTarget()
                 ? 1.0 : 0.0);
         }
 
@@ -276,7 +274,7 @@ public class TeleOp1 extends OpMode {
 
             double limelightLensHeight = 12.6; // Lens height from the floor in inches
 
-            double targetHeight = 33.0; // Height of target. 33.O IS THE CORRECT VALUE FOR THE WOODEN DOWEL MODEL!!! CHANGE BEFORE COMPETITION!!!
+            double targetHeight = 28.0; // 28 is correct now :3
 
             double angleToGoal =  Math.toRadians(limelightMountAngle + targetOffsetAngle_Vertical);
 

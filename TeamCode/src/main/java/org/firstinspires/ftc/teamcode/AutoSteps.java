@@ -33,12 +33,12 @@ public class AutoSteps {
     public Action BuildAndGetActionBuilder(String AllianceColor) {
         boolean ShouldFlip = !AllianceColor.equals(BaseColor);
 
-        Poses.add(new Pose2d(31, 9, Math.toRadians(45)));
+        Poses.add(new Pose2d(52, 24, Math.toRadians(45)));
         Poses.add(new Pose2d(48.5, 8, Math.toRadians(-90)));
         Poses.add(new Pose2d(48.5, -1, Math.toRadians(-90)));
         Poses.add(new Pose2d(48.5, -6, Math.toRadians(-90)));
         Poses.add(new Pose2d(48.5, -11, Math.toRadians(-90)));
-        Poses.add(new Pose2d(31, 9, Math.toRadians(45)));
+        Poses.add(new Pose2d(52, 24, Math.toRadians(45)));
         Poses.add(new Pose2d(10, 0, Math.toRadians(0)));
         Poses.add(new Pose2d(0, 0, Math.toRadians(0)));
 
@@ -117,7 +117,7 @@ public class AutoSteps {
             Pose2d NewPose = new Pose2d(
                 Pose.position.x,
                 -Pose.position.y,
-                -Pose.heading.real
+                -Pose.heading.log()
             );
 
             Poses.set(i, NewPose);
@@ -126,31 +126,33 @@ public class AutoSteps {
 
     private SequentialAction ShootAllBalls() {
         double RampUpTime = 2.5;
-        double ServoWaitTime = 0.3;
+        double ServoWaitTime = 0.5;
         double RevolveTime = 0.4;
         return new SequentialAction(
             new InstantAction(() -> IntakeController.SetPower(1)),
             new InstantAction(() -> IntakeController.ServosToNeutral()),
-            new InstantAction(() -> OutTakeController.SetVelocity(1550 / 6000.0)),
-            new SleepAction(RampUpTime),
+            new InstantAction(() -> OutTakeController.SetVelocity(1450 / 6000.0)),
+            new AwaitAction(() -> OutTakeController.IsAtVelocity()),
             new InstantAction(() -> OutTakeController.ServosUp()),
             new SleepAction(ServoWaitTime),
             new InstantAction(() -> OutTakeController.ServosDown()),
             new SleepAction(ServoWaitTime),
             new InstantAction(() -> DecoderWheelController.RevolveRight()),
-            new SleepAction(RevolveTime),
+            new WaitOneFrameAction(),
+            new AwaitAction(() -> DecoderWheelController.IsAtTarget()),
+            new AwaitAction(() -> OutTakeController.IsAtVelocity()),
             new InstantAction(() -> OutTakeController.ServosUp()),
             new SleepAction(ServoWaitTime),
             new InstantAction(() -> OutTakeController.ServosDown()),
             new SleepAction(ServoWaitTime),
             new InstantAction(() -> DecoderWheelController.RevolveRight()),
-            new SleepAction(RevolveTime),
+            new WaitOneFrameAction(),
+            new AwaitAction(() -> DecoderWheelController.IsAtTarget()),
+            new AwaitAction(() -> OutTakeController.IsAtVelocity()),
             new InstantAction(() -> OutTakeController.ServosUp()),
             new SleepAction(ServoWaitTime),
             new InstantAction(() -> OutTakeController.ServosDown()),
             new SleepAction(ServoWaitTime),
-            new InstantAction(() -> DecoderWheelController.RevolveRight()),
-            new SleepAction(RevolveTime),
             new InstantAction(() -> OutTakeController.SetVelocity(0)),
             new InstantAction(() -> IntakeController.SetPower(0))
         );

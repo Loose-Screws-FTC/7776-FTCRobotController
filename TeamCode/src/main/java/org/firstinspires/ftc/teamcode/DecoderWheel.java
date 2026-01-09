@@ -1,19 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
-import static java.lang.System.currentTimeMillis;
-
-import androidx.annotation.NonNull;
-
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +27,7 @@ public class DecoderWheel {
 
     private boolean IsCurrentlyOpenToIntake = false;
 
-    private boolean IsAtTarget = false;
+    private boolean AtTarget = false;
 
     public enum BallColor {
         GREEN,
@@ -78,13 +68,13 @@ public class DecoderWheel {
 
         if (this.CurrAngle < this.TargetAngle - AcceptableAngleDeviation) {
             this.Motor.setPower(baseMotorPower);
-            IsAtTarget = false;
+            AtTarget = false;
         } else if (this.CurrAngle > this.TargetAngle + AcceptableAngleDeviation) {
             this.Motor.setPower(-baseMotorPower);
-            IsAtTarget = false;
+            AtTarget = false;
         } else {
             this.Motor.setPower(0);
-            IsAtTarget = true;
+            AtTarget = true;
         }
 
         //telemetry.addData("Current angle", this.CurrAngle);
@@ -105,8 +95,8 @@ public class DecoderWheel {
         return this.BallsInWheel.get(pos);
     }
 
-    public boolean GetIsAtTarget() {
-        return this.IsAtTarget;
+    public boolean IsAtTarget() {
+        return this.AtTarget;
     }
 
     /*
