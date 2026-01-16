@@ -63,9 +63,10 @@ public class AutoTest3Blue extends LinearOpMode {
         if (TuningOpModes.DRIVE_CLASS.equals(MecanumDrive.class)) {
             Pose2d beginPose = new Pose2d(1, -7, 0);
             MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
+            // MecanumDrive.SetShouldSeeBalls(true);
             TrajectoryActionBuilder MainActionBuilder = drive.actionBuilder(beginPose);
 
-            AutoSteps StepsBuilder = new AutoSteps(MainActionBuilder, intakeController, outTakeController, decoderWheelController);
+            AutoSteps StepsBuilder = new AutoSteps(MainActionBuilder, drive, intakeController, outTakeController, decoderWheelController);
 
             Action MainActionChain = StepsBuilder.BuildAndGetActionBuilder("Blue");
 

@@ -35,6 +35,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
@@ -42,6 +43,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.messages.DriveCommandMessage;
@@ -129,6 +131,14 @@ public final class MecanumDrive {
     private final DownsampledWriter targetPoseWriter = new DownsampledWriter("TARGET_POSE", 50_000_000);
     private final DownsampledWriter driveCommandWriter = new DownsampledWriter("DRIVE_COMMAND", 50_000_000);
     private final DownsampledWriter mecanumCommandWriter = new DownsampledWriter("MECANUM_COMMAND", 50_000_000);
+
+    public DistanceSensor LeftDistanceSensor;
+    public DistanceSensor RightDistanceSensor;
+
+    /*private static boolean ShouldSeeBalls = false;
+    public static void SetShouldSeeBalls(boolean Value) {
+        ShouldSeeBalls = Value;
+    }*/
 
     public class DriveLocalizer implements Localizer {
         public final Encoder leftFront, leftBack, rightBack, rightFront;
@@ -228,6 +238,9 @@ public final class MecanumDrive {
 
     public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
         LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
+
+        this.LeftDistanceSensor = hardwareMap.get(DistanceSensor.class,"lintakesensor");
+        this.RightDistanceSensor = hardwareMap.get(DistanceSensor.class,"rintakesensor");
 
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
@@ -348,6 +361,30 @@ public final class MecanumDrive {
 
             final MotorFeedforward feedforward = new MotorFeedforward(PARAMS.kS,
                     PARAMS.kV / PARAMS.inPerTick, PARAMS.kA / PARAMS.inPerTick);
+            /*boolean shouldMoveRight = false;
+            boolean shouldMoveLeft = false;
+            double heading = Math.toRadians(lazyImu.get().getRobotYawPitchRollAngles().getYaw() + 90);
+            if (ShouldSeeBalls) {
+                double LeftDistance = LeftDistanceSensor.getDistance(DistanceUnit.CM);
+                double RightDistance = RightDistanceSensor.getDistance(DistanceUnit.CM);
+
+                if (!Double.isNaN(LeftDistance)) {
+                    shouldMoveLeft = true;
+                }
+                if (!Double.isNaN(RightDistance)) {
+                    shouldMoveRight = true;
+                }
+            }
+
+            double XBallVector = Math.cos(heading) * (shouldMoveLeft ? 0.4 : 0) + Math.cos(heading) * (shouldMoveRight ? -0.4 : 0);
+            double YBallVector = Math.sin(heading) * (shouldMoveLeft ? 0.4 : 0) + Math.sin(heading) * (shouldMoveRight ? -0.4 : 0);
+            XBallVector *= 1;
+            YBallVector *= 1;
+
+            double leftFrontPower = feedforward.compute(wheelVels.leftFront) / voltage - XBallVector + YBallVector;
+            double leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage - XBallVector + YBallVector;
+            double rightBackPower = feedforward.compute(wheelVels.rightBack) / voltage - XBallVector - YBallVector;
+            double rightFrontPower = feedforward.compute(wheelVels.rightFront) / voltage - XBallVector - YBallVector;*/
             double leftFrontPower = feedforward.compute(wheelVels.leftFront) / voltage;
             double leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage;
             double rightBackPower = feedforward.compute(wheelVels.rightBack) / voltage;

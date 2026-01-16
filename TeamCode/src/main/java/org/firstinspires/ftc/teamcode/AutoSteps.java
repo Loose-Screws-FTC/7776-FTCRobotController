@@ -18,13 +18,15 @@ import java.util.Arrays;
 public class AutoSteps {
     ArrayList<Pose2d> Poses = new ArrayList<>();
     TrajectoryActionBuilder CurrentActionBuilder;
+    MecanumDrive Drive;
     Intake IntakeController;
     OutTake OutTakeController;
     DecoderWheel DecoderWheelController;
     String BaseColor = "Blue";
 
-    public AutoSteps(TrajectoryActionBuilder ActionBuilder, Intake IntakeController, OutTake OutTakeController, DecoderWheel DecoderWheelController) {
+    public AutoSteps(TrajectoryActionBuilder ActionBuilder, MecanumDrive Drive, Intake IntakeController, OutTake OutTakeController, DecoderWheel DecoderWheelController) {
         CurrentActionBuilder = ActionBuilder;
+        this.Drive = Drive;
         this.IntakeController = IntakeController;
         this.OutTakeController = OutTakeController;
         this.DecoderWheelController = DecoderWheelController;
@@ -50,21 +52,24 @@ public class AutoSteps {
                 new InstantAction(() -> IntakeController.SetPower(1)),
                 new InstantAction(() -> IntakeController.ServosToIntake()),
                 new InstantAction(() -> DecoderWheelController.IntakeModeOn()),
-                new SleepAction(IntakeBallStepsTimeToWait)
+                new SleepAction(IntakeBallStepsTimeToWait),
+                new CollectBallAction(Drive, 5)
         );
         SequentialAction IntakeBallsStep2 = new SequentialAction(
                 new SleepAction(IntakeBallStepsTimeToWait),
                 new InstantAction(() -> IntakeController.ServosToNeutral()),
                 new InstantAction(() -> DecoderWheelController.RevolveRight()),
                 new SleepAction(IntakeBallStepsTimeToWait),
-                new InstantAction(() -> IntakeController.ServosToIntake())
+                new InstantAction(() -> IntakeController.ServosToIntake()),
+                new CollectBallAction(Drive, 5)
         );
         SequentialAction IntakeBallsStep3 = new SequentialAction(
                 new SleepAction(IntakeBallStepsTimeToWait),
                 new InstantAction(() -> IntakeController.ServosToNeutral()),
                 new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
                 new SleepAction(IntakeBallStepsTimeToWait),
-                new InstantAction(() -> IntakeController.ServosToIntake())
+                new InstantAction(() -> IntakeController.ServosToIntake()),
+                new CollectBallAction(Drive, 5)
         );
         SequentialAction IntakeBallsStep4 = new SequentialAction(
                 new SleepAction(IntakeBallStepsTimeToWait),
@@ -77,11 +82,12 @@ public class AutoSteps {
         );
 
         VelConstraint SlowVel = new MinVelConstraint(Arrays.asList(
-                new TranslationalVelConstraint(10.0),
+                new TranslationalVelConstraint(4.0),
                 new AngularVelConstraint(Math.toRadians(45))
         ));
 
         return CurrentActionBuilder
+            .waitSeconds(5)
             .splineToLinearHeading(Poses.get(0), 0)
             .stopAndAdd(ShootAllBalls())
 
@@ -128,18 +134,13 @@ public class AutoSteps {
         double RampUpTime = 2.5;
         double ServoWaitTime = 0.5;
         double RevolveTime = 0.4;
+        double RPMStabilizeTime = 0.2;
         return new SequentialAction(
             new InstantAction(() -> IntakeController.SetPower(1)),
             new InstantAction(() -> IntakeController.ServosToNeutral()),
             new InstantAction(() -> OutTakeController.SetVelocity(1450 / 6000.0)),
             new AwaitAction(() -> OutTakeController.IsAtVelocity()),
-            new InstantAction(() -> OutTakeController.ServosUp()),
-            new SleepAction(ServoWaitTime),
-            new InstantAction(() -> OutTakeController.ServosDown()),
-            new SleepAction(ServoWaitTime),
-            new InstantAction(() -> DecoderWheelController.RevolveRight()),
-            new WaitOneFrameAction(),
-            new AwaitAction(() -> DecoderWheelController.IsAtTarget()),
+            new SleepAction(RPMStabilizeTime),
             new AwaitAction(() -> OutTakeController.IsAtVelocity()),
             new InstantAction(() -> OutTakeController.ServosUp()),
             new SleepAction(ServoWaitTime),
@@ -148,6 +149,18 @@ public class AutoSteps {
             new InstantAction(() -> DecoderWheelController.RevolveRight()),
             new WaitOneFrameAction(),
             new AwaitAction(() -> DecoderWheelController.IsAtTarget()),
+            new AwaitAction(() -> OutTakeController.IsAtVelocity()),
+            new SleepAction(RPMStabilizeTime),
+            new AwaitAction(() -> OutTakeController.IsAtVelocity()),
+            new InstantAction(() -> OutTakeController.ServosUp()),
+            new SleepAction(ServoWaitTime),
+            new InstantAction(() -> OutTakeController.ServosDown()),
+            new SleepAction(ServoWaitTime),
+            new InstantAction(() -> DecoderWheelController.RevolveRight()),
+            new WaitOneFrameAction(),
+            new AwaitAction(() -> DecoderWheelController.IsAtTarget()),
+            new AwaitAction(() -> OutTakeController.IsAtVelocity()),
+            new SleepAction(RPMStabilizeTime),
             new AwaitAction(() -> OutTakeController.IsAtVelocity()),
             new InstantAction(() -> OutTakeController.ServosUp()),
             new SleepAction(ServoWaitTime),

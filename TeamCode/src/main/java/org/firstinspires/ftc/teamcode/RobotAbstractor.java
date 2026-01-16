@@ -51,8 +51,6 @@ public class RobotAbstractor {
         this.LeftDistanceSensor = hardwareMap.get(DistanceSensor.class,"lintakesensor");
         this.RightDistanceSensor = hardwareMap.get(DistanceSensor.class,"rintakesensor");
 
-
-
         this.Limelight = hardwareMap.get(Limelight3A.class, "limelight");
         this.Limelight.setPollRateHz(100);
         this.Limelight.start();
