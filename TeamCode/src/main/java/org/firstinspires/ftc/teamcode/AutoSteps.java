@@ -44,6 +44,8 @@ public class AutoSteps {
         Poses.add(new Pose2d(10, 0, Math.toRadians(0)));
         Poses.add(new Pose2d(0, 0, Math.toRadians(0)));
 
+        Poses.add(new Pose2d(30, 38, Math.toRadians(0)));
+
         if (ShouldFlip) {Flip();}
 
         // Assumes all ball slots are empty
@@ -87,7 +89,9 @@ public class AutoSteps {
         ));
 
         return CurrentActionBuilder
-            .waitSeconds(5)
+            .splineToLinearHeading(Poses.get(8), 0)
+            .waitSeconds(1)
+
             .splineToLinearHeading(Poses.get(0), 0)
             .stopAndAdd(ShootAllBalls())
 
