@@ -128,6 +128,12 @@ public class DecoderWheel {
         BallsInWheel.set(0, BallColor.NONE);
     }
 
+    public void SetCurrentColors(BallColor ball1, BallColor ball2, BallColor ball3) {
+        BallsInWheel.set(0, ball1);
+        BallsInWheel.set(1, ball2);
+        BallsInWheel.set(2, ball3);
+    }
+
     public static BallColor DetermineBallColor(NormalizedRGBA colors) {
         if (colors.green > colors.blue) {
             return BallColor.GREEN;

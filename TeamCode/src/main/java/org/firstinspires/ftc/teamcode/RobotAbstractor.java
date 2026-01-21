@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -54,6 +56,11 @@ public class RobotAbstractor {
         this.Limelight = hardwareMap.get(Limelight3A.class, "limelight");
         this.Limelight.setPollRateHz(100);
         this.Limelight.start();
+    }
+
+    public void OutTakeBall() {
+        this.OutTakeSys.ServosUp();
+        this.DecoderWheelSys.ClearOuttakeSlot();
     }
 
     public void Update(double DeltaTime) {
