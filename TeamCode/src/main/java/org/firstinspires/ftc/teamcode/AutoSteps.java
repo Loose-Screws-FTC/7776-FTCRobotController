@@ -59,7 +59,7 @@ public class AutoSteps {
         double IntakeBallStepsTimeToWait = 0.1;
         Supplier<SequentialAction> IntakeBallsStep = () -> new SequentialAction(
                 new InstantAction(() -> Robot.ShouldIntake = true),
-                new CollectBallAction(Drive, 28),
+                new CollectBallAction(Drive, 26),
                 new InstantAction(() -> Robot.ShouldIntake = false)
         );
 //        Supplier<SequentialAction> IntakeBallsStep1 = () -> new SequentialAction(
@@ -129,10 +129,10 @@ public class AutoSteps {
 
             // Return to start for now
             .strafeToLinearHeading(
-                MapPose(new Pose2d(10, 0, Math.toRadians(0))).position,
-                MapPose(new Pose2d(10, 0, Math.toRadians(0))).heading.log()
+                MapPose(new Pose2d(10, 0, Math.toRadians(270))).position,
+                MapPose(new Pose2d(10, 0, Math.toRadians(270))).heading.log()
             )
-            .strafeTo(MapPose(new Pose2d(0, 0, Math.toRadians(0))).position)
+            .strafeTo(MapPose(new Pose2d(0, 0, Math.toRadians(270))).position)
 
             // Stop
             .stopAndAdd(new InstantAction(() -> this.OutTakeController.Stop()))

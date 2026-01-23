@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Config
 public class CollectBallAction implements Action {
     private final MecanumDrive Drive;
-    public static double ForwardPower = 0.2;
+    public static double ForwardPower = 0.19;
     public static double SideSpeed = 0.5;
     private final double TargetDistance;
     private Vector2d InitialPos = null;

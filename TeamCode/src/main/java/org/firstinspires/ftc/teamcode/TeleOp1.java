@@ -15,10 +15,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Config
 @TeleOp(name="TeleOp1", group="Iterative Opmode")
 public class TeleOp1 extends OpMode {
-    public static double OuttakeRPMLow = 1600;
-    public static double OuttakeRPMHigh = 1675;
-    public double OuttakeRPMMultLow = 1;
-    public double OuttakeRPMMultHigh = 1;
+    public static int CameraPixelsXOffset = -2;
+
+    double DistanceBasedRPM = 1600;
+    public double OuttakeRPMMult = 1;
 
     //Distance measurements of the left and right intake sensors. Probably there's a better way to do this but I don't know how -Rowan
     public static double LeftDistance;
@@ -66,9 +66,7 @@ public class TeleOp1 extends OpMode {
         RightDistance = this.Robot.RightDistanceSensor.getDistance(DistanceUnit.CM);
 
         if (gamepad1.a) {
-            this.Robot.OutTakeSys.SetVelocity(OuttakeRPMLow / 6000.0 * this.OuttakeRPMMultLow);
-        } else if (gamepad1.x) {
-            this.Robot.OutTakeSys.SetVelocity(OuttakeRPMHigh / 6000.0 * this.OuttakeRPMMultHigh);
+            this.Robot.OutTakeSys.SetVelocity((this.OuttakeRPMMult * DistanceBasedRPM) / 6000.0);
         } else {
             this.Robot.OutTakeSys.SetVelocity(0);
         }
@@ -83,20 +81,15 @@ public class TeleOp1 extends OpMode {
             this.Robot.OutTakeSys.ServosDown();
         }
 
-        if (gamepad2.a) {
-            this.OuttakeRPMMultLow -= 0.02 * DeltaTime;
-        }
-        if (gamepad2.y) {
-            this.OuttakeRPMMultLow += 0.02 * DeltaTime;
-        }
         if (gamepad2.dpad_up) {
-            this.OuttakeRPMMultHigh += 0.015 * DeltaTime;
+            this.OuttakeRPMMult -= 0.02 * DeltaTime;
         }
         if (gamepad2.dpad_down) {
-            this.OuttakeRPMMultHigh -= 0.015 * DeltaTime;
+            this.OuttakeRPMMult += 0.02 * DeltaTime;
         }
-        telemetry.addData("Low RPM", this.OuttakeRPMMultLow * OuttakeRPMLow);
-        telemetry.addData("High RPM", this.OuttakeRPMMultHigh * OuttakeRPMHigh);
+        telemetry.addData("raw DistanceBasedRPM", this.DistanceBasedRPM);
+        telemetry.addData("mult DistanceBasedRPM", this.OuttakeRPMMult * this.DistanceBasedRPM);
+        telemetry.addData("RPM mult", this.OuttakeRPMMult);
 
         Robot.ShouldIntake = gamepad1.right_bumper;
         Robot.AutoIntakeUpdate(DeltaTime);
@@ -133,11 +126,14 @@ public class TeleOp1 extends OpMode {
         //Hold RightTrigger to hold orientation on Apriltag
         LLResult result = this.Robot.Limelight.getLatestResult();
         if (result != null && result.isValid()) {
-            double tx = result.getTx(); // Target left/right distance from center of fov (degrees)
-            double ty = result.getTy(); // Target up/down distance from center of fov (degrees)
-            double ta = result.getTa(); // Target area (0-100% of fov)
+            // Target left/right distance from center of fov (degrees)
+            double tx = result.getTx() + CameraPixelsXOffset;
+            // Target up/down distance from center of fov (degrees)
+            double ty = result.getTy();
+            // Target area (0-100% of fov)
+            double ta = result.getTa();
 
-            this.DriveSys.setLimelightTx(result.getTx()); // Pass Tx to drive system
+            this.DriveSys.setLimelightTx(tx); // Pass Tx to drive system
 
             telemetry.addData("Target X", tx);
             telemetry.addData("Target Y", ty);
@@ -162,6 +158,8 @@ public class TeleOp1 extends OpMode {
             double targetDistance = (targetHeight - limelightLensHeight)/Math.tan(angleToGoal);
 
             telemetry.addData("Target Distance",targetDistance);
+
+            DistanceBasedRPM = OutTake.GetRPMAt(targetDistance);
         }
 
         this.DriveSys.SetTargetingAprilTag(gamepad1.y);

@@ -123,6 +123,13 @@ public class OutTake {
         // LastRRevs = RRevs;
     }
 
+    // https://www.desmos.com/calculator/xx5wnlycwg
+    public static double GetRPMAt(double distance) {
+        if (distance < 53.5) return 5 * distance + 1332.5;
+        if (distance < 68) return 1600;
+        return (-205.9896 / (1 + Math.exp(0.158699 * distance - 17.30768))) + 1804.51045;
+    }
+
     public void SetVelocity(double Velocity) {
         this.TargetVelocity = Velocity;
         LMotor.setVelocity(Velocity * MaxTicksPerSecond);

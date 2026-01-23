@@ -22,7 +22,7 @@ public class DecoderWheel {
     private double TargetAngle = 0;
     private double CurrAngle = 0;
 
-    public static double MaxMotorPower = 0.6;
+    public static double MaxMotorPower = 0.7;
     public static double CloseMotorPower = 0.3;
     public static double NoBallsPowerMultiplier = 0.5;
     public static double AcceptableAngleDeviation = 5;
