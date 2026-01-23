@@ -19,7 +19,6 @@ import java.util.function.Supplier;
 
 @Config
 public class AutoSteps {
-    ArrayList<Pose2d> Poses = new ArrayList<>();
     TrajectoryActionBuilder CurrentActionBuilder;
     MecanumDrive Drive;
     RobotAbstractor Robot;
@@ -57,21 +56,9 @@ public class AutoSteps {
     }
 
     public Action BuildAndGetActionBuilder() {
-        Poses.add(new Pose2d(52, 24, Math.toRadians(45)));
-        Poses.add(new Pose2d(48.5, 8, Math.toRadians(-90)));
-        Poses.add(new Pose2d(48.5, -1, Math.toRadians(-90)));
-        Poses.add(new Pose2d(48.5, -6, Math.toRadians(-90)));
-        Poses.add(new Pose2d(48.5, -11, Math.toRadians(-90)));
-        Poses.add(new Pose2d(52, 24, Math.toRadians(45)));
-        Poses.add(new Pose2d(10, 0, Math.toRadians(0)));
-        Poses.add(new Pose2d(0, 0, Math.toRadians(0)));
-
-        Poses.add(new Pose2d(30, 38, Math.toRadians(0)));
-
-        if (ShouldFlip) {Flip();}
-
         double RampUpTime = 2.5;
-        double ServoWaitTime = 1;
+        double ServoUpTime = 0.5;
+        double ServoDownTime = 1;
         double RevolveTime = 0.4;
         double RPMStabilizeTime = 0.2;
         Supplier<SequentialAction> ShootAllBalls = () -> new SequentialAction(
@@ -83,9 +70,9 @@ public class AutoSteps {
                 new SleepAction(RPMStabilizeTime),
                 new AwaitAction(() -> OutTakeController.IsAtVelocity()),
                 new InstantAction(() -> Robot.OutTakeBall()),
-                new SleepAction(ServoWaitTime),
+                new SleepAction(ServoUpTime),
                 new InstantAction(() -> OutTakeController.ServosDown()),
-                new SleepAction(ServoWaitTime),
+                new SleepAction(ServoDownTime),
                 new InstantAction(() -> DecoderWheelController.RevolveToColor(BallOrder.GameOrder.Ball2)),
                 new WaitOneFrameAction(),
                 new AwaitAction(() -> DecoderWheelController.IsAtTarget()),
@@ -93,9 +80,9 @@ public class AutoSteps {
                 new SleepAction(RPMStabilizeTime),
                 new AwaitAction(() -> OutTakeController.IsAtVelocity()),
                 new InstantAction(() -> Robot.OutTakeBall()),
-                new SleepAction(ServoWaitTime),
+                new SleepAction(ServoUpTime),
                 new InstantAction(() -> OutTakeController.ServosDown()),
-                new SleepAction(ServoWaitTime),
+                new SleepAction(ServoDownTime),
                 new InstantAction(() -> DecoderWheelController.RevolveToColor(BallOrder.GameOrder.Ball3)),
                 new WaitOneFrameAction(),
                 new AwaitAction(() -> DecoderWheelController.IsAtTarget()),
@@ -103,9 +90,9 @@ public class AutoSteps {
                 new SleepAction(RPMStabilizeTime),
                 new AwaitAction(() -> OutTakeController.IsAtVelocity()),
                 new InstantAction(() -> Robot.OutTakeBall()),
-                new SleepAction(ServoWaitTime),
+                new SleepAction(ServoUpTime),
                 new InstantAction(() -> OutTakeController.ServosDown()),
-                new SleepAction(ServoWaitTime),
+                new SleepAction(ServoDownTime),
                 new InstantAction(() -> IntakeController.SetPower(0))
         );
 
@@ -116,7 +103,8 @@ public class AutoSteps {
                 new InstantAction(() -> IntakeController.ServosToIntake()),
                 new InstantAction(() -> DecoderWheelController.IntakeModeOn()),
                 new SleepAction(IntakeBallStepsTimeToWait),
-                new CollectBallAction(Drive, 3)
+                new CollectBallAction(Drive, 5),
+                new InstantAction(() -> DecoderWheelController.SetIntakedColor(DecoderWheel.BallColor.PURPLE))
         );
         Supplier<SequentialAction> IntakeBallsStep2 = () -> new SequentialAction(
                 new SleepAction(IntakeBallStepsTimeToWait),
@@ -124,7 +112,8 @@ public class AutoSteps {
                 new InstantAction(() -> DecoderWheelController.RevolveRight()),
                 new SleepAction(IntakeBallStepsTimeToWait),
                 new InstantAction(() -> IntakeController.ServosToIntake()),
-                new CollectBallAction(Drive, 3)
+                new CollectBallAction(Drive, 3),
+                new InstantAction(() -> DecoderWheelController.SetIntakedColor(DecoderWheel.BallColor.PURPLE))
         );
         Supplier<SequentialAction> IntakeBallsStep3 = () -> new SequentialAction(
                 new SleepAction(IntakeBallStepsTimeToWait),
@@ -132,7 +121,8 @@ public class AutoSteps {
                 new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
                 new SleepAction(IntakeBallStepsTimeToWait),
                 new InstantAction(() -> IntakeController.ServosToIntake()),
-                new CollectBallAction(Drive, 3)
+                new CollectBallAction(Drive, 5),
+                new InstantAction(() -> DecoderWheelController.SetIntakedColor(DecoderWheel.BallColor.GREEN))
         );
         Supplier<SequentialAction> IntakeBallsStep4 = () -> new SequentialAction(
                 new SleepAction(IntakeBallStepsTimeToWait),
@@ -151,34 +141,30 @@ public class AutoSteps {
 
         return CurrentActionBuilder
             .stopAndAdd(() -> OutTakeController.SetVelocity(LaunchRPM / 6000.0))
-            .splineToLinearHeading(Poses.get(8), 0)
-            .stopAndAdd(() -> BallOrder.DetectBallOrder(this.Robot))
+            .splineToLinearHeading(MapPose(new Pose2d(10, 18, Math.toRadians(ShouldFlip ? -45 : 45))), 0)
+            .stopAndAdd(new FindBallOrderAction(Robot))
+            .stopAndAdd(() -> DecoderWheelController.RevolveToColor(BallOrder.GameOrder.Ball1))
 
-            .splineToLinearHeading(Poses.get(0), 0)
+            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(45))), 0)
             .stopAndAdd(ShootAllBalls.get())
 
             // Intake first line of balls
-            .splineToLinearHeading(Poses.get(1), 0)
+            .splineToLinearHeading(MapPose(new Pose2d(48.5, 2, Math.toRadians(-90))), 0)
             .stopAndAdd(IntakeBallsStep1.get())
-            .strafeTo(new Vector2d(Poses.get(2).position.x, Poses.get(2).position.y), SlowVel)
+            .strafeTo(MapPose(new Pose2d(48.5, -5, Math.toRadians(-90))).position, SlowVel)
             .stopAndAdd(IntakeBallsStep2.get())
-            .strafeTo(new Vector2d(Poses.get(3).position.x, Poses.get(3).position.y), SlowVel)
+            .strafeTo(MapPose(new Pose2d(48.5, -10, Math.toRadians(-90))).position, SlowVel)
             .stopAndAdd(IntakeBallsStep3.get())
-            .strafeTo(new Vector2d(Poses.get(4).position.x, Poses.get(4).position.y), SlowVel)
+            .strafeTo(MapPose(new Pose2d(48.5, -15, Math.toRadians(-90))).position, SlowVel)
             .stopAndAdd(IntakeBallsStep4.get())
-            .stopAndAdd(() -> DecoderWheelController.SetCurrentColors(
-                    DecoderWheel.BallColor.PURPLE,
-                    DecoderWheel.BallColor.PURPLE,
-                    DecoderWheel.BallColor.GREEN
-            ))
 
             // Move to goal, then shoot all the collected balls
-            .splineToLinearHeading(Poses.get(5), Math.toRadians(ShouldFlip ? -90 : 90))
+            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(45))), Math.toRadians(ShouldFlip ? -90 : 90))
             .stopAndAdd(ShootAllBalls.get())
 
             // Return to start for now
-            .splineToLinearHeading(Poses.get(6), Math.toRadians(ShouldFlip ? -180 : 180))
-            .strafeTo(new Vector2d(Poses.get(7).position.x, Poses.get(7).position.y))
+            .splineToLinearHeading(MapPose(new Pose2d(10, 0, Math.toRadians(0))), Math.toRadians(ShouldFlip ? -90 : 90))
+            .strafeTo(MapPose(new Pose2d(0, 0, Math.toRadians(0))).position)
 
             // Stop
             .stopAndAdd(new InstantAction(() -> this.OutTakeController.Stop()))
@@ -195,7 +181,11 @@ public class AutoSteps {
         );
     }
 
-    public void Flip() {
-        Poses.replaceAll(this::FlipPose);
+    public Pose2d MapPose(Pose2d Pose) {
+        if (ShouldFlip) {
+            return FlipPose(Pose);
+        } else {
+            return Pose;
+        }
     }
 }

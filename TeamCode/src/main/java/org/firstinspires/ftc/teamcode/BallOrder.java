@@ -19,28 +19,37 @@ public enum BallOrder {
         Ball3 = ball3;
     }
 
-    public static BallOrder GameOrder;
+    public static BallOrder GameOrder = IDK;
 
-    static BallOrder FindBallOrder(RobotAbstractor robot) {
+    public static BallOrder FindBallOrder(RobotAbstractor robot) {
         LLResult llResult = robot.Limelight.getLatestResult();
         if (llResult == null) return BallOrder.IDK;
         BallOrder order = BallOrder.IDK;
+        double bestBallOrderX = Double.POSITIVE_INFINITY;
         for (LLResultTypes.FiducialResult fiducialResult : llResult.getFiducialResults()) {
             int id = fiducialResult.getFiducialId();
+            BallOrder orderHere;
             if (id == 21) {
-                order = BallOrder.GREEN1;
+                orderHere = BallOrder.GREEN1;
             } else if (id == 22) {
-                order = BallOrder.GREEN2;
+                orderHere = BallOrder.GREEN2;
             } else if (id == 23) {
-                order = BallOrder.GREEN3;
+                orderHere = BallOrder.GREEN3;
+            } else {
+                continue;
+            }
+            if (fiducialResult.getTargetXPixels() < bestBallOrderX) {
+                bestBallOrderX = fiducialResult.getTargetXPixels();
+                order = orderHere;
             }
         }
         return order;
     }
 
     public static void DetectBallOrder(RobotAbstractor robot) {
-        if (GameOrder != IDK) {
-            GameOrder = FindBallOrder(robot);
+        BallOrder order = FindBallOrder(robot);
+        if (order != IDK) {
+            GameOrder = order;
         }
     }
 }

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import androidx.annotation.NonNull;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.hardware.ams.AMSColorSensor;
@@ -12,6 +13,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+@Config
 public class Intake {
     private Servo LServ;
     private Servo RServ;
@@ -21,6 +23,11 @@ public class Intake {
     private double Speed = 0;
     private double TargetSpeed = 0;
     private double RampUpSpeed = 4;
+
+    private double BallDetectTime = Double.POSITIVE_INFINITY;
+
+    public static double NeutralPos = 0.01;
+    public static double IntakePos = 0.09;
 
     public void Init(Servo LeftServo, Servo RightServo, DcMotor IntakeMotor) {
         this.LServ = LeftServo;
@@ -42,6 +49,11 @@ public class Intake {
     public void Update(double DeltaTime) {
         this.Speed += (this.TargetSpeed - this.Speed) * DeltaTime * this.RampUpSpeed;
         this.Motor.setPower(this.Speed);
+        AutorotateUpdate();
+    }
+
+    public void AutorotateUpdate() {
+
     }
 
     public void SetPower(double Power) {
@@ -55,12 +67,12 @@ public class Intake {
 
     public void ServosToNeutral() {
         this.EnableServos();
-        this.SetServosToPos(0.01);
+        this.SetServosToPos(NeutralPos);
     }
 
     public void ServosToIntake() {
         this.EnableServos();
-        this.SetServosToPos(0.09);
+        this.SetServosToPos(IntakePos);
     }
 
     public void DisableServos() {

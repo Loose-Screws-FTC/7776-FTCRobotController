@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,7 +16,7 @@ import java.util.List;
 public class DecoderWheel {
     private DcMotorEx Motor;
 
-    public static int IntakeSlot = 1;
+    private int IntakeSlot = 1;
 
     private double AddedAngleToRevolveOneStep = 120;
     private double TicksPerRev = 28 * 6.2;
@@ -22,8 +25,16 @@ public class DecoderWheel {
 
     public static double MaxMotorPower = 0.5;
     public static double CloseMotorPower = 0.2;
+    public static double NoBallsPowerMultiplier = 0.5;
     public static double AcceptableAngleDeviation = 5;
     public static double CloseAngleDeviation = 15;
+    public static double PositionV = 20;
+    public static double VelocityP = 60;
+    public static double VelocityI = 20;
+    public static double VelocityD = 10;
+    public static double VelocityF = 30;
+    public static double MaxPower = 0.1;
+    public static int PowerCutDeviation = 10;
 
     private boolean IsCurrentlyOpenToIntake = false;
 
@@ -43,10 +54,12 @@ public class DecoderWheel {
 
         this.Motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.Motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.Motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 //        this.Motor.setTargetPosition(0);
 //        this.Motor.setPower(MotorPower);
 //        this.Motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        this.Motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//        this.Motor.setTargetPosition(0);
+//        this.Motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
 //        PIDFCoefficients coefs = this.Motor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 //        telemetry.addLine(coefs.toString());
@@ -61,21 +74,53 @@ public class DecoderWheel {
     }
 
     public void Update(double DeltaTime) {
+        Globals.telemetry.addData("ballorder", BallOrder.GameOrder.toString());
+
+//        this.Motor.setPositionPIDFCoefficients(PositionV);
+//        this.Motor.setVelocityPIDFCoefficients(VelocityP, VelocityI, VelocityD, VelocityF);
+
         this.CurrAngle = this.Motor.getCurrentPosition() / TicksPerRev * 360;
+//        Globals.telemetry.addData("CurrAngle", CurrAngle);
+//        Globals.telemetry.addData("TargetAngle", TargetAngle);
+//        this.Motor.setTargetPosition((int)(TargetAngle / 360.0 * TicksPerRev));
+//        double AngleDeviation = Math.abs(this.CurrAngle - this.TargetAngle);
+//        this.AtTarget = AngleDeviation <= AcceptableAngleDeviation;
+
+//        if (AngleDeviation <= PowerCutDeviation) {
+//            this.Motor.setPower(0);
+//        } else {
+//            this.Motor.setPower(MaxPower);
+//        }
+
+//        PIDFCoefficients coefs = this.Motor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+//        Globals.telemetry.addData("p", Double.toString(coefs.p));
+//        Globals.telemetry.addData("i", Double.toString(coefs.i));
+//        Globals.telemetry.addData("d", Double.toString(coefs.d));
+//        Globals.telemetry.addData("f", Double.toString(coefs.f));
 
         boolean isClose = Math.abs(this.TargetAngle - this.CurrAngle) < CloseAngleDeviation;
         double baseMotorPower = isClose ? CloseMotorPower : MaxMotorPower;
+        if (!HasAnyBalls()) baseMotorPower *= NoBallsPowerMultiplier;
+
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.put("curr angle", this.CurrAngle);
+        packet.put("target angle", this.TargetAngle);
+        packet.put("AcceptableAngleDeviation", AcceptableAngleDeviation);
 
         if (this.CurrAngle < this.TargetAngle - AcceptableAngleDeviation) {
+            packet.put("power", baseMotorPower);
             this.Motor.setPower(baseMotorPower);
             AtTarget = false;
         } else if (this.CurrAngle > this.TargetAngle + AcceptableAngleDeviation) {
+            packet.put("power", -baseMotorPower);
             this.Motor.setPower(-baseMotorPower);
             AtTarget = false;
         } else {
+            packet.put("power", 0);
             this.Motor.setPower(0);
             AtTarget = true;
         }
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
         //telemetry.addData("Current angle", this.CurrAngle);
         //telemetry.addData("Motor", this.Motor.getCurrentPosition());
@@ -120,6 +165,13 @@ public class DecoderWheel {
         Collections.rotate(BallsInWheel, -1);
     }
 
+    public boolean HasAnyBalls() {
+        for (BallColor color : BallsInWheel) {
+            if (color != BallColor.NONE) return true;
+        }
+        return false;
+    }
+
     public void SetIntakedColor(BallColor Color) {
         BallsInWheel.set(IntakeSlot, Color);
     }
@@ -146,28 +198,17 @@ public class DecoderWheel {
         if (this.IsCurrentlyOpenToIntake)
             return false;
 
-        int IndexOfColor = -1;
-
         if (this.BallsInWheel.get(0) == Color) {
             return true;
         } else if (this.BallsInWheel.get(1) == Color) {
-            IndexOfColor = 1;
+            this.RevolveLeft();
+            return true;
         } else if (this.BallsInWheel.get(2) == Color) {
-            IndexOfColor = 2;
-        }
-
-        if (IndexOfColor == -1) {
+            this.RevolveRight();
+            return true;
+        } else {
             return false;
         }
-
-        // Index will always either be 1 or 2
-        if (IndexOfColor == 1) {
-            this.RevolveLeft();
-        } else {
-            this.RevolveRight();
-        }
-
-        return true;
     }
 
     // public void OpenToIntake() {
