@@ -99,7 +99,7 @@ public class AutoSteps {
         double IntakeBallStepsTimeToWait = 0.1;
         Supplier<SequentialAction> IntakeBallsStep = () -> new SequentialAction(
                 new InstantAction(() -> Robot.ShouldIntake = true),
-                new CollectBallAction(Drive, 20),
+                new CollectBallAction(Drive, 28),
                 new InstantAction(() -> Robot.ShouldIntake = false)
         );
 //        Supplier<SequentialAction> IntakeBallsStep1 = () -> new SequentialAction(
@@ -153,7 +153,7 @@ public class AutoSteps {
             .stopAndAdd(ShootAllBalls.get())
 
             // Intake first line of balls
-            .splineToLinearHeading(MapPose(new Pose2d(48.5, 2, Math.toRadians(-90))), 0)
+            .splineToLinearHeading(MapPose(new Pose2d(48.5, 5, Math.toRadians(-90))), 0)
             .stopAndAdd(IntakeBallsStep.get())
 //            .stopAndAdd(IntakeBallsStep1.get())
 //            .strafeTo(MapPose(new Pose2d(48.5, -5, Math.toRadians(-90))).position, SlowVel)
