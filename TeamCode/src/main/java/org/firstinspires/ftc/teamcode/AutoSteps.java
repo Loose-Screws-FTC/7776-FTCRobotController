@@ -28,7 +28,7 @@ public class AutoSteps {
     TeamColor AllianceColor;
     boolean ShouldFlip;
 
-    public static double LaunchRPM = 1650;
+    public static double LaunchRPM = 1625;
 
     public enum TeamColor {
         BLUE,
@@ -48,53 +48,13 @@ public class AutoSteps {
 
     public void Init() {
         this.DecoderWheelController.SetCurrentColors(
-                DecoderWheel.BallColor.GREEN,
-                DecoderWheel.BallColor.PURPLE,
-                DecoderWheel.BallColor.PURPLE
+            BallColor.GREEN,
+            BallColor.PURPLE,
+            BallColor.PURPLE
         );
     }
 
     public Action BuildAndGetActionBuilder() {
-        double RampUpTime = 2.5;
-        double ServoUpTime = 0.5;
-        double ServoDownTime = 1;
-        double RevolveTime = 0.4;
-        double RPMStabilizeTime = 0.2;
-        Supplier<SequentialAction> ShootAllBalls = () -> new SequentialAction(
-                new InstantAction(() -> IntakeController.SetPower(1)),
-                new InstantAction(() -> IntakeController.ServosToNeutral()),
-                new SleepAction(0.1), // wait for the intake servos to move
-                new InstantAction(() -> DecoderWheelController.RevolveToColor(BallOrder.GameOrder.Ball1)),
-                new AwaitAction(() -> OutTakeController.IsAtVelocity()),
-                new SleepAction(RPMStabilizeTime),
-                new AwaitAction(() -> OutTakeController.IsAtVelocity()),
-                new InstantAction(() -> Robot.OutTakeBall()),
-                new SleepAction(ServoUpTime),
-                new InstantAction(() -> OutTakeController.ServosDown()),
-                new SleepAction(ServoDownTime),
-                new InstantAction(() -> DecoderWheelController.RevolveToColor(BallOrder.GameOrder.Ball2)),
-                new WaitOneFrameAction(),
-                new AwaitAction(() -> DecoderWheelController.IsAtTarget()),
-                new AwaitAction(() -> OutTakeController.IsAtVelocity()),
-                new SleepAction(RPMStabilizeTime),
-                new AwaitAction(() -> OutTakeController.IsAtVelocity()),
-                new InstantAction(() -> Robot.OutTakeBall()),
-                new SleepAction(ServoUpTime),
-                new InstantAction(() -> OutTakeController.ServosDown()),
-                new SleepAction(ServoDownTime),
-                new InstantAction(() -> DecoderWheelController.RevolveToColor(BallOrder.GameOrder.Ball3)),
-                new WaitOneFrameAction(),
-                new AwaitAction(() -> DecoderWheelController.IsAtTarget()),
-                new AwaitAction(() -> OutTakeController.IsAtVelocity()),
-                new SleepAction(RPMStabilizeTime),
-                new AwaitAction(() -> OutTakeController.IsAtVelocity()),
-                new InstantAction(() -> Robot.OutTakeBall()),
-                new SleepAction(ServoUpTime),
-                new InstantAction(() -> OutTakeController.ServosDown()),
-                new SleepAction(ServoDownTime),
-                new InstantAction(() -> IntakeController.SetPower(0))
-        );
-
         // Assumes all ball slots are empty
         double IntakeBallStepsTimeToWait = 0.1;
         Supplier<SequentialAction> IntakeBallsStep = () -> new SequentialAction(
@@ -139,18 +99,18 @@ public class AutoSteps {
 //        );
 
         VelConstraint SlowVel = new MinVelConstraint(Arrays.asList(
-                new TranslationalVelConstraint(4.0),
-                new AngularVelConstraint(Math.toRadians(45))
+            new TranslationalVelConstraint(4.0),
+            new AngularVelConstraint(Math.toRadians(45))
         ));
 
-        Action steps =  CurrentActionBuilder
+        Action steps = CurrentActionBuilder
             .stopAndAdd(() -> OutTakeController.SetVelocity(LaunchRPM / 6000.0))
             .splineToLinearHeading(MapPose(new Pose2d(10, 18, Math.toRadians(ShouldFlip ? -45 : 45))), 0)
             .stopAndAdd(new FindBallOrderAction(Robot))
             .stopAndAdd(() -> DecoderWheelController.RevolveToColor(BallOrder.GameOrder.Ball1))
 
             .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(45))), 0)
-            .stopAndAdd(ShootAllBalls.get())
+            .stopAndAdd(Robot.ShootAllBallsAction())
 
             // Intake first line of balls
             .splineToLinearHeading(MapPose(new Pose2d(48.5, 5, Math.toRadians(-90))), 0)
@@ -165,10 +125,13 @@ public class AutoSteps {
 
             // Move to goal, then shoot all the collected balls
             .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(45))), Math.toRadians(ShouldFlip ? -90 : 90))
-            .stopAndAdd(ShootAllBalls.get())
+            .stopAndAdd(Robot.ShootAllBallsAction())
 
             // Return to start for now
-            .splineToLinearHeading(MapPose(new Pose2d(10, 0, Math.toRadians(0))), Math.toRadians(ShouldFlip ? -90 : 90))
+            .strafeToLinearHeading(
+                MapPose(new Pose2d(10, 0, Math.toRadians(0))).position,
+                MapPose(new Pose2d(10, 0, Math.toRadians(0))).heading.log()
+            )
             .strafeTo(MapPose(new Pose2d(0, 0, Math.toRadians(0))).position)
 
             // Stop
@@ -180,7 +143,7 @@ public class AutoSteps {
         return new ParallelAction(
             new UpdateAction(DecoderWheelController::Update),
             new UpdateAction(IntakeController::Update),
-            new UpdateAction(Robot::IntakeUpdate),
+            new UpdateAction(Robot::AutoIntakeUpdate),
             new UpdateAction(OutTakeController::Update),
             new UpdateAction(this::TelemetryUpdate),
             new SequentialAction(

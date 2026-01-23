@@ -6,7 +6,6 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,12 +38,6 @@ public class DecoderWheel {
     private boolean IsCurrentlyOpenToIntake = false;
 
     private boolean AtTarget = false;
-
-    public enum BallColor {
-        GREEN,
-        PURPLE,
-        NONE
-    }
 
     // Index 0 should always be the one in front of the outtake wheels.
     private List<BallColor> BallsInWheel = new ArrayList<>();
@@ -104,7 +97,7 @@ public class DecoderWheel {
 
         boolean isClose = Math.abs(this.TargetAngle - this.CurrAngle) < CloseAngleDeviation;
         double baseMotorPower = isClose ? CloseMotorPower : MaxMotorPower;
-        if (!HasAnyBalls()) baseMotorPower *= NoBallsPowerMultiplier;
+        if (!HasAnyRealBalls()) baseMotorPower *= NoBallsPowerMultiplier;
 
         TelemetryPacket packet = new TelemetryPacket();
         packet.put("curr angle", this.CurrAngle);
@@ -169,9 +162,9 @@ public class DecoderWheel {
         Collections.rotate(BallsInWheel, -1);
     }
 
-    public boolean HasAnyBalls() {
+    public boolean HasAnyRealBalls() {
         for (BallColor color : BallsInWheel) {
-            if (color != BallColor.NONE) return true;
+            if (color != BallColor.NONE && color != BallColor.DUMMY) return true;
         }
         return false;
     }
@@ -198,20 +191,37 @@ public class DecoderWheel {
         }
     }
 
-    public boolean RevolveToColor(BallColor Color) {
+    public void RevolveToColor(BallColor Color) {
         if (this.IsCurrentlyOpenToIntake)
-            return false;
+            return;
 
-        if (this.BallsInWheel.get(0) == Color) {
-            return true;
-        } else if (this.BallsInWheel.get(1) == Color) {
+        if (this.BallsInWheel.get(0) == Color) return;
+
+        if (this.BallsInWheel.get(1) == Color) {
             this.RevolveLeft();
-            return true;
         } else if (this.BallsInWheel.get(2) == Color) {
             this.RevolveRight();
-            return true;
         } else {
-            return false;
+            RevolveToAnyColor();
+        }
+    }
+
+    public void RevolveToAnyColor() {
+        if (this.BallsInWheel.get(0) != BallColor.NONE) return;
+
+        if (this.BallsInWheel.get(1) != BallColor.NONE) {
+            this.RevolveLeft();
+        } else if (this.BallsInWheel.get(2) != BallColor.NONE) {
+            this.RevolveRight();
+        }
+    }
+
+    // Adds purple balls to all empty slots
+    public void AddDummyBalls() {
+        for (int i = 0; i < 3; i++) {
+            if (this.BallsInWheel.get(i) == BallColor.NONE) {
+                this.BallsInWheel.set(i, BallColor.DUMMY);
+            }
         }
     }
 

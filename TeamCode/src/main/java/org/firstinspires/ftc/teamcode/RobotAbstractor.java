@@ -1,6 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -11,9 +17,13 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
 @Config
 public class RobotAbstractor {
-    public static double BallColorTolerance = 0.006;
+    public static double BallColorTolerance = 0.002;
     public static double RetractIntakeTime = 0;
     public static double RevolveTime = 0.1;
     public static double RevolveFinishTime = 0.3;
@@ -31,10 +41,12 @@ public class RobotAbstractor {
 
     public final ElapsedTime Runtime;
 
+    private List<Action> RunningActions = new ArrayList<>();
+
     private double BallDetectTime = Double.POSITIVE_INFINITY;
-    private boolean BallDetected = false;
     private boolean RotatedAfterIntaking = false;
 
+    public boolean BallDetected = false;
     public boolean ShouldIntake = false;
     public boolean CurrentlyIntaking = false;
 
@@ -74,12 +86,16 @@ public class RobotAbstractor {
         Runtime = new ElapsedTime();
     }
 
-    public void OutTakeBall() {
+    public void AddAction(Action action) {
+        RunningActions.add(action);
+    }
+
+    public void StartOutTakeBall() {
         this.OutTakeSys.ServosUp();
         this.DecoderWheelSys.ClearOuttakeSlot();
     }
 
-    public void IntakeUpdate(double deltaTime) {
+    public void AutoIntakeUpdate(double deltaTime) {
         NormalizedRGBA colors = ColorSensor.getNormalizedColors();
         if (Double.isInfinite(BallDetectTime)) {
             // Color sensor values typically float between 0.001 and 0.002 when looking at nothing,
@@ -128,10 +144,52 @@ public class RobotAbstractor {
         this.OutTakeSys.Update(DeltaTime);
         this.IntakeSys.Update(DeltaTime);
         this.DecoderWheelSys.Update(DeltaTime);
+        UpdateRunningActions();
+    }
+
+    private void UpdateRunningActions() {
+        TelemetryPacket packet = new TelemetryPacket();
+        RunningActions.removeIf(action -> !action.run(packet));
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
     }
 
     public void Stop() {
         this.OutTakeSys.Stop();
         this.IntakeSys.Stop();
+    }
+
+    public Action ShootOneBallAction() {
+        double RPMStabilizeTime = 0.2;
+        double ServoUpTime = 0.5;
+        double ServoDownTime = 1;
+        return new SequentialAction(
+            new AwaitAction(DecoderWheelSys::IsAtTarget),
+            new AwaitAction(OutTakeSys::IsAtVelocity),
+            new SleepAction(RPMStabilizeTime),
+            new AwaitAction(OutTakeSys::IsAtVelocity),
+            new InstantAction(this::StartOutTakeBall),
+            new SleepAction(ServoUpTime),
+            new InstantAction(OutTakeSys::ServosDown),
+            new SleepAction(ServoDownTime)
+        );
+    }
+
+    public Action ShootAllBallsAction() {
+        return new SequentialAction(
+            new InstantAction(DecoderWheelSys::AddDummyBalls),
+            new InstantAction(() -> IntakeSys.SetPower(1)),
+            new InstantAction(IntakeSys::ServosToNeutral),
+            new SleepAction(0.1), // wait for the intake servos to move
+            new InstantAction(() -> DecoderWheelSys.RevolveToColor(BallOrder.GameOrder.Ball1)),
+            new WaitOneFrameAction(),
+            ShootOneBallAction(),
+            new InstantAction(() -> DecoderWheelSys.RevolveToColor(BallOrder.GameOrder.Ball2)),
+            new WaitOneFrameAction(),
+            ShootOneBallAction(),
+            new InstantAction(() -> DecoderWheelSys.RevolveToColor(BallOrder.GameOrder.Ball3)),
+            new WaitOneFrameAction(),
+            ShootOneBallAction(),
+            new InstantAction(() -> IntakeSys.SetPower(0))
+        );
     }
 }

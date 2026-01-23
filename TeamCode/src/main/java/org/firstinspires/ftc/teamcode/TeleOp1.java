@@ -8,8 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.limelightvision.LLResult;
-
-import static java.lang.System.currentTimeMillis;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -27,10 +26,6 @@ public class TeleOp1 extends OpMode {
 
     public RobotAbstractor Robot;
     public Drive DriveSys;
-
-    private boolean LastDpadRight = false;
-    private boolean LastDpadLeft = false;
-    private boolean LastRightBump = false;
 
     @Override
     // Has to be lowercase init()
@@ -53,9 +48,12 @@ public class TeleOp1 extends OpMode {
     }
 
     // Has to be lowercase loop()
-    double LastRecTime = currentTimeMillis() / 1000.0;
+    double LastRecTime = Double.NaN;
     public void loop() {
-        double CurrTime = currentTimeMillis() / 1000.0;
+        double CurrTime = Robot.Runtime.seconds();
+        if (Double.isNaN(LastRecTime)) {
+            LastRecTime = CurrTime;
+        }
         double DeltaTime = CurrTime - LastRecTime;
         LastRecTime = CurrTime;
 
@@ -67,7 +65,6 @@ public class TeleOp1 extends OpMode {
         LeftDistance = this.Robot.LeftDistanceSensor.getDistance(DistanceUnit.CM);
         RightDistance = this.Robot.RightDistanceSensor.getDistance(DistanceUnit.CM);
 
-        // telemetry.addData("outtake power set", gamepad1.right_trigger);
         if (gamepad1.a) {
             this.Robot.OutTakeSys.SetVelocity(OuttakeRPMLow / 6000.0 * this.OuttakeRPMMultLow);
         } else if (gamepad1.x) {
@@ -76,10 +73,13 @@ public class TeleOp1 extends OpMode {
             this.Robot.OutTakeSys.SetVelocity(0);
         }
 
-        if (gamepad1.b) {
-            this.Robot.DecoderWheelSys.ClearOuttakeSlot();
-            this.Robot.OutTakeSys.ServosUp();
-        } else {
+        if (gamepad1.guideWasPressed()) {
+            this.Robot.AddAction(this.Robot.ShootAllBallsAction());
+        }
+
+        if (gamepad1.bWasPressed()) {
+            this.Robot.StartOutTakeBall();
+        } else if (gamepad1.bWasReleased()) {
             this.Robot.OutTakeSys.ServosDown();
         }
 
@@ -99,33 +99,11 @@ public class TeleOp1 extends OpMode {
         telemetry.addData("High RPM", this.OuttakeRPMMultHigh * OuttakeRPMHigh);
 
         Robot.ShouldIntake = gamepad1.right_bumper;
-        Robot.IntakeUpdate(DeltaTime);
-
-//        if (gamepad2.x) {
-//            this.Robot.IntakeSys.ServosToIntake();
-//            this.Robot.IntakeSys.SetPower(-1);
-//        } else {
-//        }
+        Robot.AutoIntakeUpdate(DeltaTime);
 
         if (gamepad2.b) {
             this.DriveSys.ResetIMU();
         }
-
-        // if (gamepad1.right_bumper) {
-        //     this.ShakePos += 0.5;
-
-        //     this.Robot.DriveSys.SetDriveMode(Drive.DriveMode.MANUAL);
-
-        //     if (Math.sin(this.ShakePos) > 0) {
-        //         Vector2 MoveDir = new Vector2(0, 0);
-        //         this.Robot.DriveSys.MoveInLocalDirectionAndTurn(MoveDir.GetNormal(), MoveDir.GetMagnitude(), 1, 1);
-        //     } else {
-        //         Vector2 MoveDir = new Vector2(0, 0);
-        //         this.Robot.DriveSys.MoveInLocalDirectionAndTurn(MoveDir.GetNormal(), MoveDir.GetMagnitude(), -1, 1);
-        //     }
-        // } else {
-        //     this.Robot.DriveSys.SetDriveMode(Drive.DriveMode.CONTROLLER_DRIVEN);
-        // }
 
         if (gamepad1.left_bumper) {
             this.DriveSys.SetDriveSpeed(0.2);
@@ -135,65 +113,21 @@ public class TeleOp1 extends OpMode {
             this.DriveSys.SetRotationSpeed(1);
         }
 
-        if (gamepad1.dpad_right && !LastDpadRight) {
+        if (gamepad1.dpadRightWasPressed()) {
             this.Robot.DecoderWheelSys.RevolveRight();
         }
 
-        if (gamepad1.dpad_left && !LastDpadLeft) {
+        if (gamepad1.dpadLeftWasPressed()) {
             this.Robot.DecoderWheelSys.RevolveLeft();
         }
 
         if (gamepad1.dpad_up) {
-            this.Robot.DecoderWheelSys.RevolveToColor(DecoderWheel.BallColor.PURPLE);
+            this.Robot.DecoderWheelSys.RevolveToColor(BallColor.PURPLE);
         }
 
         if (gamepad1.dpad_down) {
-            this.Robot.DecoderWheelSys.RevolveToColor(DecoderWheel.BallColor.GREEN);
+            this.Robot.DecoderWheelSys.RevolveToColor(BallColor.GREEN);
         }
-
-        telemetry.addData("p1bc", this.Robot.DecoderWheelSys.GetBallColorAt(0));
-        telemetry.addData("p2bc", this.Robot.DecoderWheelSys.GetBallColorAt(1));
-        telemetry.addData("p3bc", this.Robot.DecoderWheelSys.GetBallColorAt(2));
-
-//        if (gamepad1.left_trigger > 0.5) {
-//            this.TargetRPM -= 350 * DeltaTime;
-//        }
-
-//        if (gamepad1.right_trigger > 0.5) {
-//            this.TargetRPM += 350 * DeltaTime;
-//        }
-
-        // if (gamepad1.right_bumper && !LastRightBump) {
-        //     this.Robot.DecoderWheelSys.OpenToIntake();
-        // }
-
-        // if (!gamepad1.right_bumper && LastRightBump) {
-        //     this.Robot.DecoderWheelSys.CloseToIntake();
-
-//        if (gamepad1.dpad_right) {
-//            this.Robot.DecoderWheelSys.SetPower(0.5);
-//        }
-//
-//        else if (gamepad1.dpad_left) {
-//            this.Robot.DecoderWheelSys.SetPower(-0.5);
-//        }
-
-        // } else {
-        //     this.Robot.DecoderWheelSys.SetPower(0);
-        // }
-        // this.Robot.DecoderWheelSys.SetPower(0);
-
-//        if (gamepad1.dpad_up) {
-//            this.TiltServoPos = 0.572;
-//            this.TiltServo.setPosition(this.TiltServoPos);
-//            this.TargetRPM = 1500;
-//        }
-//
-//        if (gamepad1.dpad_down) {
-//            this.TiltServoPos = 0.51;
-//            this.TiltServo.setPosition(this.TiltServoPos);
-//            this.TargetRPM = 1500;
-//        }
 
         //Z-targeting: works like in Zelda (:
         //Hold RightTrigger to hold orientation on Apriltag
@@ -235,9 +169,12 @@ public class TeleOp1 extends OpMode {
         this.DriveSys.SetTargetingBall(gamepad1.right_bumper);
 
         TelemetryPacket packet = new TelemetryPacket();
-//        packet.put("red", colors.red);
-//        packet.put("green", colors.green);
-//        packet.put("blue", colors.blue);
+
+        NormalizedRGBA colors = Robot.ColorSensor.getNormalizedColors();
+        packet.put("red", colors.red);
+        packet.put("green", colors.green);
+        packet.put("blue", colors.blue);
+
         packet.put("Left Distance", this.Robot.LeftDistanceSensor.getDistance(DistanceUnit.CM));
         packet.put("Right Distance", this.Robot.RightDistanceSensor.getDistance(DistanceUnit.CM));
         FtcDashboard.getInstance().sendTelemetryPacket(packet);
@@ -246,10 +183,6 @@ public class TeleOp1 extends OpMode {
 //        telemetry.addData("TargetRPM", Math.round(this.TargetRPM));
 
         telemetry.update();
-
-        LastDpadRight = gamepad1.dpad_right;
-        LastDpadLeft = gamepad1.dpad_left;
-        LastRightBump = gamepad1.right_bumper;
     }
 
     public void stop() {
