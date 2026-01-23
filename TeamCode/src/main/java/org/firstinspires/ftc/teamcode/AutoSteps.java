@@ -5,15 +5,14 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.AngularVelConstraint;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.MinVelConstraint;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.TranslationalVelConstraint;
-import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.VelConstraint;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
@@ -98,48 +97,53 @@ public class AutoSteps {
 
         // Assumes all ball slots are empty
         double IntakeBallStepsTimeToWait = 0.1;
-        Supplier<SequentialAction> IntakeBallsStep1 = () -> new SequentialAction(
-                new InstantAction(() -> IntakeController.SetPower(1)),
-                new InstantAction(() -> IntakeController.ServosToIntake()),
-                new InstantAction(() -> DecoderWheelController.IntakeModeOn()),
-                new SleepAction(IntakeBallStepsTimeToWait),
-                new CollectBallAction(Drive, 5),
-                new InstantAction(() -> DecoderWheelController.SetIntakedColor(DecoderWheel.BallColor.PURPLE))
+        Supplier<SequentialAction> IntakeBallsStep = () -> new SequentialAction(
+                new InstantAction(() -> Robot.ShouldIntake = true),
+                new CollectBallAction(Drive, 20),
+                new InstantAction(() -> Robot.ShouldIntake = false)
         );
-        Supplier<SequentialAction> IntakeBallsStep2 = () -> new SequentialAction(
-                new SleepAction(IntakeBallStepsTimeToWait),
-                new InstantAction(() -> IntakeController.ServosToNeutral()),
-                new InstantAction(() -> DecoderWheelController.RevolveRight()),
-                new SleepAction(IntakeBallStepsTimeToWait),
-                new InstantAction(() -> IntakeController.ServosToIntake()),
-                new CollectBallAction(Drive, 3),
-                new InstantAction(() -> DecoderWheelController.SetIntakedColor(DecoderWheel.BallColor.PURPLE))
-        );
-        Supplier<SequentialAction> IntakeBallsStep3 = () -> new SequentialAction(
-                new SleepAction(IntakeBallStepsTimeToWait),
-                new InstantAction(() -> IntakeController.ServosToNeutral()),
-                new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
-                new SleepAction(IntakeBallStepsTimeToWait),
-                new InstantAction(() -> IntakeController.ServosToIntake()),
-                new CollectBallAction(Drive, 5),
-                new InstantAction(() -> DecoderWheelController.SetIntakedColor(DecoderWheel.BallColor.GREEN))
-        );
-        Supplier<SequentialAction> IntakeBallsStep4 = () -> new SequentialAction(
-                new SleepAction(IntakeBallStepsTimeToWait),
-                new InstantAction(() -> IntakeController.ServosToNeutral()),
-                new InstantAction(() -> DecoderWheelController.RevolveRight()),
-                new InstantAction(() -> DecoderWheelController.IntakeModeOff()),
-                new InstantAction(() -> IntakeController.SetPower(0)),
-                new InstantAction(() -> IntakeController.ServosToNeutral()),
-                new SleepAction(IntakeBallStepsTimeToWait)
-        );
+//        Supplier<SequentialAction> IntakeBallsStep1 = () -> new SequentialAction(
+//                new InstantAction(() -> IntakeController.SetPower(1)),
+//                new InstantAction(() -> IntakeController.ServosToIntake()),
+//                new InstantAction(() -> DecoderWheelController.IntakeModeOn()),
+//                new SleepAction(IntakeBallStepsTimeToWait),
+//                new CollectBallAction(Drive, 5),
+//                new InstantAction(() -> DecoderWheelController.SetIntakedColor(DecoderWheel.BallColor.PURPLE))
+//        );
+//        Supplier<SequentialAction> IntakeBallsStep2 = () -> new SequentialAction(
+//                new SleepAction(IntakeBallStepsTimeToWait),
+//                new InstantAction(() -> IntakeController.ServosToNeutral()),
+//                new InstantAction(() -> DecoderWheelController.RevolveRight()),
+//                new SleepAction(IntakeBallStepsTimeToWait),
+//                new InstantAction(() -> IntakeController.ServosToIntake()),
+//                new CollectBallAction(Drive, 3),
+//                new InstantAction(() -> DecoderWheelController.SetIntakedColor(DecoderWheel.BallColor.PURPLE))
+//        );
+//        Supplier<SequentialAction> IntakeBallsStep3 = () -> new SequentialAction(
+//                new SleepAction(IntakeBallStepsTimeToWait),
+//                new InstantAction(() -> IntakeController.ServosToNeutral()),
+//                new InstantAction(() -> this.DecoderWheelController.RevolveRight()),
+//                new SleepAction(IntakeBallStepsTimeToWait),
+//                new InstantAction(() -> IntakeController.ServosToIntake()),
+//                new CollectBallAction(Drive, 5),
+//                new InstantAction(() -> DecoderWheelController.SetIntakedColor(DecoderWheel.BallColor.GREEN))
+//        );
+//        Supplier<SequentialAction> IntakeBallsStep4 = () -> new SequentialAction(
+//                new SleepAction(IntakeBallStepsTimeToWait),
+//                new InstantAction(() -> IntakeController.ServosToNeutral()),
+//                new InstantAction(() -> DecoderWheelController.RevolveRight()),
+//                new InstantAction(() -> DecoderWheelController.IntakeModeOff()),
+//                new InstantAction(() -> IntakeController.SetPower(0)),
+//                new InstantAction(() -> IntakeController.ServosToNeutral()),
+//                new SleepAction(IntakeBallStepsTimeToWait)
+//        );
 
         VelConstraint SlowVel = new MinVelConstraint(Arrays.asList(
                 new TranslationalVelConstraint(4.0),
                 new AngularVelConstraint(Math.toRadians(45))
         ));
 
-        return CurrentActionBuilder
+        Action steps =  CurrentActionBuilder
             .stopAndAdd(() -> OutTakeController.SetVelocity(LaunchRPM / 6000.0))
             .splineToLinearHeading(MapPose(new Pose2d(10, 18, Math.toRadians(ShouldFlip ? -45 : 45))), 0)
             .stopAndAdd(new FindBallOrderAction(Robot))
@@ -150,13 +154,14 @@ public class AutoSteps {
 
             // Intake first line of balls
             .splineToLinearHeading(MapPose(new Pose2d(48.5, 2, Math.toRadians(-90))), 0)
-            .stopAndAdd(IntakeBallsStep1.get())
-            .strafeTo(MapPose(new Pose2d(48.5, -5, Math.toRadians(-90))).position, SlowVel)
-            .stopAndAdd(IntakeBallsStep2.get())
-            .strafeTo(MapPose(new Pose2d(48.5, -10, Math.toRadians(-90))).position, SlowVel)
-            .stopAndAdd(IntakeBallsStep3.get())
-            .strafeTo(MapPose(new Pose2d(48.5, -15, Math.toRadians(-90))).position, SlowVel)
-            .stopAndAdd(IntakeBallsStep4.get())
+            .stopAndAdd(IntakeBallsStep.get())
+//            .stopAndAdd(IntakeBallsStep1.get())
+//            .strafeTo(MapPose(new Pose2d(48.5, -5, Math.toRadians(-90))).position, SlowVel)
+//            .stopAndAdd(IntakeBallsStep2.get())
+//            .strafeTo(MapPose(new Pose2d(48.5, -10, Math.toRadians(-90))).position, SlowVel)
+//            .stopAndAdd(IntakeBallsStep3.get())
+//            .strafeTo(MapPose(new Pose2d(48.5, -15, Math.toRadians(-90))).position, SlowVel)
+//            .stopAndAdd(IntakeBallsStep4.get())
 
             // Move to goal, then shoot all the collected balls
             .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(45))), Math.toRadians(ShouldFlip ? -90 : 90))
@@ -171,6 +176,21 @@ public class AutoSteps {
             .stopAndAdd(new InstantAction(() -> this.IntakeController.Stop()))
 
             .build();
+
+        return new ParallelAction(
+            new UpdateAction(DecoderWheelController::Update),
+            new UpdateAction(IntakeController::Update),
+            new UpdateAction(Robot::IntakeUpdate),
+            new UpdateAction(OutTakeController::Update),
+            new UpdateAction(this::TelemetryUpdate),
+            new SequentialAction(
+                steps
+            )
+        );
+    }
+
+    void TelemetryUpdate(double deltaTime) {
+        Globals.telemetry.update();
     }
 
     public Pose2d FlipPose(Pose2d Pose) {

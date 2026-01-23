@@ -8,6 +8,8 @@ import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.hardware.ams.AMSColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
@@ -23,8 +25,6 @@ public class Intake {
     private double Speed = 0;
     private double TargetSpeed = 0;
     private double RampUpSpeed = 4;
-
-    private double BallDetectTime = Double.POSITIVE_INFINITY;
 
     public static double NeutralPos = 0.01;
     public static double IntakePos = 0.09;
@@ -49,11 +49,6 @@ public class Intake {
     public void Update(double DeltaTime) {
         this.Speed += (this.TargetSpeed - this.Speed) * DeltaTime * this.RampUpSpeed;
         this.Motor.setPower(this.Speed);
-        AutorotateUpdate();
-    }
-
-    public void AutorotateUpdate() {
-
     }
 
     public void SetPower(double Power) {

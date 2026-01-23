@@ -23,8 +23,8 @@ public class DecoderWheel {
     private double TargetAngle = 0;
     private double CurrAngle = 0;
 
-    public static double MaxMotorPower = 0.5;
-    public static double CloseMotorPower = 0.2;
+    public static double MaxMotorPower = 0.6;
+    public static double CloseMotorPower = 0.3;
     public static double NoBallsPowerMultiplier = 0.5;
     public static double AcceptableAngleDeviation = 5;
     public static double CloseAngleDeviation = 15;
@@ -74,7 +74,11 @@ public class DecoderWheel {
     }
 
     public void Update(double DeltaTime) {
-        Globals.telemetry.addData("ballorder", BallOrder.GameOrder.toString());
+        Globals.telemetry.addData("ball1", this.BallsInWheel.get(0));
+        Globals.telemetry.addData("ball2", this.BallsInWheel.get(1));
+        Globals.telemetry.addData("ball3", this.BallsInWheel.get(2));
+
+//        Globals.telemetry.addData("ballorder", BallOrder.GameOrder.toString());
 
 //        this.Motor.setPositionPIDFCoefficients(PositionV);
 //        this.Motor.setVelocityPIDFCoefficients(VelocityP, VelocityI, VelocityD, VelocityF);

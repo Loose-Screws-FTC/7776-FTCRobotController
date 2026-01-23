@@ -7,8 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.hardware.limelightvision.LLResult;
 
 import static java.lang.System.currentTimeMillis;
@@ -18,11 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Config
 @TeleOp(name="TeleOp1", group="Iterative Opmode")
 public class TeleOp1 extends OpMode {
-    public static final double RETRACT_INTAKE_TIME = 0;
-    public static final double REVOLVE_TIME = 0.1;
-    public static final double REVOLVE_FINISH_TIME = 0.3;
-
-    public static double OuttakeRPMLow = 1550;
+    public static double OuttakeRPMLow = 1600;
     public static double OuttakeRPMHigh = 1675;
     public double OuttakeRPMMultLow = 1;
     public double OuttakeRPMMultHigh = 1;
@@ -38,19 +32,10 @@ public class TeleOp1 extends OpMode {
     private boolean LastDpadLeft = false;
     private boolean LastRightBump = false;
 
-    private boolean BallDetected = false;
-    private boolean RotatedAfterIntaking = false;
-    private double BallColorTolerance = 0.006;
-
-    private ElapsedTime runtime = new ElapsedTime();
-    private double ballDetectTime = Double.POSITIVE_INFINITY;
-
     @Override
     // Has to be lowercase init()
     public void init() {
         Globals.telemetry = telemetry;
-
-        runtime.reset(); // TEMP, maybe remove
 
         DcMotor FlMotor = hardwareMap.get(DcMotor.class, "fl");
         DcMotor FrMotor = hardwareMap.get(DcMotor.class, "fr");
@@ -113,38 +98,14 @@ public class TeleOp1 extends OpMode {
         telemetry.addData("Low RPM", this.OuttakeRPMMultLow * OuttakeRPMLow);
         telemetry.addData("High RPM", this.OuttakeRPMMultHigh * OuttakeRPMHigh);
 
-        boolean currentlyIntaking = gamepad1.right_bumper;
+        Robot.ShouldIntake = gamepad1.right_bumper;
+        Robot.IntakeUpdate(DeltaTime);
 
-        if (runtime.seconds() > ballDetectTime + REVOLVE_FINISH_TIME) {
-            this.ballDetectTime = Double.POSITIVE_INFINITY;
-        } else if (runtime.seconds() > ballDetectTime + REVOLVE_TIME) {
-            if (!RotatedAfterIntaking) {
-                RotatedAfterIntaking = true;
-                this.Robot.DecoderWheelSys.RevolveRight();
-            }
-            this.Robot.IntakeSys.ServosToNeutral();
-        } else if (runtime.seconds() > ballDetectTime + RETRACT_INTAKE_TIME) {
-            RotatedAfterIntaking = false;
-            this.Robot.IntakeSys.ServosToNeutral();
-        } else if (currentlyIntaking) {
-            this.Robot.IntakeSys.ServosToIntake();
-        } else {
-            this.Robot.IntakeSys.ServosToNeutral();
-        }
-
-        if (currentlyIntaking) {
-            this.Robot.DecoderWheelSys.IntakeModeOn();
-        } else {
-            this.Robot.DecoderWheelSys.IntakeModeOff();
-        }
-
-        if (gamepad2.x) {
-            this.Robot.IntakeSys.ServosToIntake();
-            this.Robot.IntakeSys.SetPower(-1);
-        } else {
-            this.Robot.IntakeSys.SetPower(currentlyIntaking || !this.Robot.DecoderWheelSys.IsAtTarget()
-                ? 1.0 : 0.0);
-        }
+//        if (gamepad2.x) {
+//            this.Robot.IntakeSys.ServosToIntake();
+//            this.Robot.IntakeSys.SetPower(-1);
+//        } else {
+//        }
 
         if (gamepad2.b) {
             this.DriveSys.ResetIMU();
@@ -234,20 +195,6 @@ public class TeleOp1 extends OpMode {
 //            this.TargetRPM = 1500;
 //        }
 
-        // Ball detection with color sensor
-        // "capturetime" is used to allow the ball to settle before rotating and to prevent misfires (caused by sensor looking through a hole in the ball or a momentary bad value)
-        // All three color values being compared to 0.01 will cause the system to trigger on essentially any object with color, should maybe be tuned for specific ball colors (or indexing could be handled elsewhere)
-        NormalizedRGBA colors = this.Robot.ColorSensor.getNormalizedColors();
-        if (Double.isInfinite(ballDetectTime)) {
-            if (colors.red > this.BallColorTolerance || colors.green > this.BallColorTolerance || colors.blue > this.BallColorTolerance) { // Color sensor values typically float between 0.001 and 0.002 when looking at nothing, and are normally between 0.01 and 0.03 for colored objects (depending on the color)
-                this.Robot.DecoderWheelSys.SetIntakedColor(DecoderWheel.DetermineBallColor(colors));
-                this.BallDetected = true;
-                this.ballDetectTime = runtime.seconds();
-            } else {
-                this.BallDetected = false;
-            }
-        }
-
         //Z-targeting: works like in Zelda (:
         //Hold RightTrigger to hold orientation on Apriltag
         LLResult result = this.Robot.Limelight.getLatestResult();
@@ -288,13 +235,13 @@ public class TeleOp1 extends OpMode {
         this.DriveSys.SetTargetingBall(gamepad1.right_bumper);
 
         TelemetryPacket packet = new TelemetryPacket();
-        packet.put("red", colors.red);
-        packet.put("green", colors.green);
-        packet.put("blue", colors.blue);
+//        packet.put("red", colors.red);
+//        packet.put("green", colors.green);
+//        packet.put("blue", colors.blue);
         packet.put("Left Distance", this.Robot.LeftDistanceSensor.getDistance(DistanceUnit.CM));
         packet.put("Right Distance", this.Robot.RightDistanceSensor.getDistance(DistanceUnit.CM));
         FtcDashboard.getInstance().sendTelemetryPacket(packet);
-        telemetry.addData("Ball Detected: ", BallDetected);
+//        telemetry.addData("Ball Detected: ", BallDetected);
 
 //        telemetry.addData("TargetRPM", Math.round(this.TargetRPM));
 
