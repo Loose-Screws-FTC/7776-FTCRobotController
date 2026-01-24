@@ -26,8 +26,8 @@ public class Intake {
     private double TargetSpeed = 0;
     private double RampUpSpeed = 4;
 
-    public static double NeutralPos = 0.01;
-    public static double IntakePos = 0.09;
+    public static double NeutralPos = 0.03;
+    public static double IntakePos = 0.13;
 
     public void Init(Servo LeftServo, Servo RightServo, DcMotor IntakeMotor) {
         this.LServ = LeftServo;

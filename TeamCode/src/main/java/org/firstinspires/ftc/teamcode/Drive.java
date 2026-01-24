@@ -169,8 +169,8 @@ public class Drive {
 
             double turnAmount = 0;
             if (this.AprilTagTargetMode) {
-                turnAmount = 0.025 * limelightTx;
-                TargetRot = Double.NaN;
+//                turnAmount = 0.025 * limelightTx;
+                TargetRot = CurrentRot + Math.toRadians(limelightTx);
             }
 
             //Check if we are currently intaking and there is an object in front of one (not both) of the sensors.
