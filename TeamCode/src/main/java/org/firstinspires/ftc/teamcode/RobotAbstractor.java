@@ -17,6 +17,8 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -24,6 +26,7 @@ import java.util.function.Supplier;
 @Config
 public class RobotAbstractor {
     public static double BallColorTolerance = 0.0025;
+    public static double BallDistanceThreshold = 4.75;
     public static double RetractIntakeTime = 0;
     public static double RevolveTime = 0.1;
     public static double RevolveFinishTime = 0.3;
@@ -102,9 +105,11 @@ public class RobotAbstractor {
         if (Double.isInfinite(BallDetectTime)) {
             // Color sensor values typically float between 0.001 and 0.002 when looking at nothing,
             // and are normally between 0.01 and 0.03 for colored objects (depending on the color)
-            if (colors.red > BallColorTolerance
+            boolean colorsMet = colors.red > BallColorTolerance
                     || colors.green > BallColorTolerance
-                    || colors.blue > BallColorTolerance) {
+                    || colors.blue > BallColorTolerance;
+            boolean distanceMet = ((DistanceSensor)ColorSensor).getDistance(DistanceUnit.CM) < BallDistanceThreshold;
+            if (colorsMet && distanceMet) {
                 DecoderWheelSys.SetIntakedColor(DecoderWheel.DetermineBallColor(colors));
                 this.BallDetected = true;
                 this.BallDetectTime = Runtime.seconds();

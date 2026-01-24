@@ -9,6 +9,7 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
@@ -189,6 +190,7 @@ public class TeleOp1 extends OpMode {
         packet.put("red", colors.red);
         packet.put("green", colors.green);
         packet.put("blue", colors.blue);
+        packet.put("distance", ((DistanceSensor)Robot.ColorSensor).getDistance(DistanceUnit.CM));
 
         packet.put("Left Distance", this.Robot.LeftDistanceSensor.getDistance(DistanceUnit.CM));
         packet.put("Right Distance", this.Robot.RightDistanceSensor.getDistance(DistanceUnit.CM));

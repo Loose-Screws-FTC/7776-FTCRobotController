@@ -254,14 +254,6 @@ public class Drive {
         );
 
         MoveInLocalDirectionAndTurn(LocalMoveDirection, Speed, TurnAmount, Time);
-
-        return;
-    }
-
-    public double MoveToPoint(Vector2 Pos, double Rot, double Speed, double Precision) {
-        //double DirectionTo =
-
-        return 0;
     }
 
     public void SetDriveSpeed(double Speed) {
