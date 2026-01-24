@@ -13,8 +13,10 @@ public class CollectBallAction implements Action {
     private final MecanumDrive Drive;
     public static double ForwardPower = 0.19;
     public static double SideSpeed = 0.5;
+    public static double MaxRuntime = 5.0;
     private final double TargetDistance;
     private Vector2d InitialPos = null;
+    private double StartTime = Double.NaN;
 
     public CollectBallAction(MecanumDrive drive, double forwardDistance) {
         this.Drive = drive;
@@ -23,6 +25,11 @@ public class CollectBallAction implements Action {
 
     @Override
     public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+        double currentTime = System.currentTimeMillis() / 1000.0;
+        if (Double.isNaN(StartTime)) {
+            StartTime = currentTime;
+        }
+
         double SidePower = 0;
         double LeftDistance = this.Drive.LeftDistanceSensor.getDistance(DistanceUnit.CM);
         double RightDistance = this.Drive.RightDistanceSensor.getDistance(DistanceUnit.CM);
@@ -47,7 +54,8 @@ public class CollectBallAction implements Action {
         } else {
             Vector2d DeltaPos = Pos.minus(InitialPos);
             Globals.telemetry.addData("Dist", DeltaPos.norm());
-            if (DeltaPos.sqrNorm() < TargetDistance * TargetDistance) {
+            if (DeltaPos.sqrNorm() < TargetDistance * TargetDistance
+                && (currentTime - StartTime) < MaxRuntime) {
                 return true;
             } else {
                 this.Drive.leftFront.setPower(0);

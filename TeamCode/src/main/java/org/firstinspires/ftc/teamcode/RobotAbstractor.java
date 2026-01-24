@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 
 @Config
 public class RobotAbstractor {
-    public static double BallColorTolerance = 0.002;
+    public static double BallColorTolerance = 0.0025;
     public static double RetractIntakeTime = 0;
     public static double RevolveTime = 0.1;
     public static double RevolveFinishTime = 0.3;
@@ -49,6 +49,8 @@ public class RobotAbstractor {
     public boolean BallDetected = false;
     public boolean ShouldIntake = false;
     public boolean CurrentlyIntaking = false;
+
+    public boolean IntakeShouldOuttake = false;
 
     public RobotAbstractor(HardwareMap hardwareMap) {
         DcMotorEx OutLeft = (DcMotorEx)hardwareMap.get(DcMotor.class, "outl");
@@ -137,7 +139,11 @@ public class RobotAbstractor {
 
         double IntakePower = CurrentlyIntaking || !DecoderWheelSys.IsAtTarget()
                 ? 1.0 : 0.0;
-        IntakeSys.SetPower(IntakePower);
+        if (!IntakeShouldOuttake) {
+            IntakeSys.SetPower(IntakePower);
+        } else {
+            IntakeSys.SetPower(-1);
+        }
     }
 
     public void Update(double DeltaTime) {

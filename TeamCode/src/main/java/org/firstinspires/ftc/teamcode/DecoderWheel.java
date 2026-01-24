@@ -23,17 +23,15 @@ public class DecoderWheel {
     private double CurrAngle = 0;
 
     public static double MaxMotorPower = 0.7;
-    public static double CloseMotorPower = 0.3;
-    public static double NoBallsPowerMultiplier = 0.5;
+    public static double CloseMotorPower = 0.2;
+    public static double NoBallsPowerMultiplier = 0.65;
     public static double AcceptableAngleDeviation = 5;
-    public static double CloseAngleDeviation = 15;
-    public static double PositionV = 20;
-    public static double VelocityP = 60;
-    public static double VelocityI = 20;
-    public static double VelocityD = 10;
-    public static double VelocityF = 30;
-    public static double MaxPower = 0.1;
-    public static int PowerCutDeviation = 10;
+    public static double CloseAngleDeviation = 30;
+
+    public static double PMaxAngle = 30;
+    public static double PMinAngle = 5;
+    public static double MinMotorPower = 0.2;
+    // public static double MaxMotorPower = 0.7;
 
     private boolean IsCurrentlyOpenToIntake = false;
 
@@ -95,8 +93,13 @@ public class DecoderWheel {
 //        Globals.telemetry.addData("d", Double.toString(coefs.d));
 //        Globals.telemetry.addData("f", Double.toString(coefs.f));
 
-        boolean isClose = Math.abs(this.TargetAngle - this.CurrAngle) < CloseAngleDeviation;
-        double baseMotorPower = isClose ? CloseMotorPower : MaxMotorPower;
+        double angleDeviation = Math.abs(this.TargetAngle - this.CurrAngle);
+        double interPDist = (angleDeviation - PMinAngle) / (PMaxAngle - PMinAngle);
+        if (interPDist < 0) interPDist = 0;
+        if (interPDist > 1) interPDist = 1;
+        double baseMotorPower = interPDist * MaxMotorPower + (1 - interPDist) * MinMotorPower;
+        // boolean isClose = angleDeviation < CloseAngleDeviation;
+        // double baseMotorPower = isClose ? CloseMotorPower : MaxMotorPower;
         if (!HasAnyRealBalls()) baseMotorPower *= NoBallsPowerMultiplier;
 
         TelemetryPacket packet = new TelemetryPacket();

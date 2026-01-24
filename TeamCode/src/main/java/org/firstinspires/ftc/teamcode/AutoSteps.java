@@ -105,7 +105,8 @@ public class AutoSteps {
 
         Action steps = CurrentActionBuilder
             .stopAndAdd(() -> OutTakeController.SetVelocity(LaunchRPM / 6000.0))
-            .splineToLinearHeading(MapPose(new Pose2d(10, 18, Math.toRadians(ShouldFlip ? -45 : 45))), 0)
+            .stopAndAdd(() -> OutTakeController.SetIsFiring(true))
+            .splineToLinearHeading(MapPose(new Pose2d(10, 18, Math.toRadians(-45))), 0)
             .stopAndAdd(new FindBallOrderAction(Robot))
             .stopAndAdd(() -> DecoderWheelController.RevolveToColor(BallOrder.GameOrder.Ball1))
 

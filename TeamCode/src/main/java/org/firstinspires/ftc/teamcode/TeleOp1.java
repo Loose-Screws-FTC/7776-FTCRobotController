@@ -3,6 +3,9 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -15,7 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Config
 @TeleOp(name="TeleOp1", group="Iterative Opmode")
 public class TeleOp1 extends OpMode {
-    public static int CameraPixelsXOffset = -2;
+    public static int CameraDegreesXOffset = -2;
 
     double DistanceBasedRPM = 1600;
     public double OuttakeRPMMult = 1;
@@ -65,14 +68,24 @@ public class TeleOp1 extends OpMode {
         LeftDistance = this.Robot.LeftDistanceSensor.getDistance(DistanceUnit.CM);
         RightDistance = this.Robot.RightDistanceSensor.getDistance(DistanceUnit.CM);
 
-        if (gamepad1.a) {
-            this.Robot.OutTakeSys.SetVelocity((this.OuttakeRPMMult * DistanceBasedRPM) / 6000.0);
-        } else {
-            this.Robot.OutTakeSys.SetVelocity(0);
+        this.Robot.OutTakeSys.SetVelocity((this.OuttakeRPMMult * DistanceBasedRPM) / 6000.0);
+
+        if (gamepad2.a) {
+            this.Robot.OutTakeSys.SetIsFiring(true);
+        }
+
+        if (gamepad1.aWasPressed()) {
+            this.Robot.OutTakeSys.SetIsFiring(true);
+        } else if (gamepad1.aWasReleased()) {
+            this.Robot.OutTakeSys.SetIsFiring(false);
         }
 
         if (gamepad1.guideWasPressed()) {
-            this.Robot.AddAction(this.Robot.ShootAllBallsAction());
+            this.Robot.AddAction(new SequentialAction(
+                new InstantAction(() -> Robot.OutTakeSys.SetIsFiring(true)),
+                this.Robot.ShootAllBallsAction(),
+                new InstantAction(() -> Robot.OutTakeSys.SetIsFiring(false))
+            ));
         }
 
         if (gamepad1.bWasPressed()) {
@@ -124,47 +137,51 @@ public class TeleOp1 extends OpMode {
 
         //Z-targeting: works like in Zelda (:
         //Hold RightTrigger to hold orientation on Apriltag
-        LLResult result = this.Robot.Limelight.getLatestResult();
-        if (result != null && result.isValid()) {
-            // Target left/right distance from center of fov (degrees)
-            double tx = result.getTx() + CameraPixelsXOffset;
-            // Target up/down distance from center of fov (degrees)
-            double ty = result.getTy();
-            // Target area (0-100% of fov)
-            double ta = result.getTa();
+        LLResult llResult = this.Robot.Limelight.getLatestResult();
+        boolean foundValidTarget = false;
+        if (llResult != null && llResult.isValid()) {
+            for (LLResultTypes.FiducialResult fidResult : llResult.getFiducialResults()) {
+                if (fidResult.getFiducialId() != 20 && fidResult.getFiducialId() != 24) {
+                    continue;
+                }
 
-            this.DriveSys.setLimelightTx(tx); // Pass Tx to drive system
+                foundValidTarget = true;
+                // Target left/right distance from center of fov (degrees)
+                double tx = fidResult.getTargetXDegrees() + CameraDegreesXOffset;
+                // Target up/down distance from center of fov (degrees)
+                double ty = fidResult.getTargetYDegrees();
 
-            telemetry.addData("Target X", tx);
-            telemetry.addData("Target Y", ty);
-            telemetry.addData("Target Area", ta);
-        } else {
-            this.DriveSys.setLimelightTx(0);
+                this.DriveSys.setLimelightTx(tx); // Pass Tx to drive system
+
+                telemetry.addData("Target X", tx);
+                telemetry.addData("Target Y", ty);
+
+                // Finds the distance between the camera and the currently targeted apriltag. Method is explained in detail at https://docs.limelightvision.io/docs/docs-limelight/tutorials/tutorial-estimating-distance
+
+                double limelightMountAngle = 21.0; // Camera is 21 degrees back from vertical
+
+                double limelightLensHeight = 12.6; // Lens height from the floor in inches
+
+                double targetHeight = 28.0; // 28 is correct now :3
+
+                double angleToGoal =  Math.toRadians(limelightMountAngle + ty);
+
+                double targetDistance = (targetHeight - limelightLensHeight)/Math.tan(angleToGoal);
+
+                telemetry.addData("Target Distance",targetDistance);
+
+                DistanceBasedRPM = OutTake.GetRPMAt(targetDistance);
+            }
         }
-
-        if (result != null && result.isValid()) {
-
-            // Finds the distance between the camera and the currently targeted apriltag. Method is explained in detail at https://docs.limelightvision.io/docs/docs-limelight/tutorials/tutorial-estimating-distance
-            double targetOffsetAngle_Vertical = result.getTy();
-
-            double limelightMountAngle = 21.0; // Camera is 21 degrees back from vertical
-
-            double limelightLensHeight = 12.6; // Lens height from the floor in inches
-
-            double targetHeight = 28.0; // 28 is correct now :3
-
-            double angleToGoal =  Math.toRadians(limelightMountAngle + targetOffsetAngle_Vertical);
-
-            double targetDistance = (targetHeight - limelightLensHeight)/Math.tan(angleToGoal);
-
-            telemetry.addData("Target Distance",targetDistance);
-
-            DistanceBasedRPM = OutTake.GetRPMAt(targetDistance);
+        if (!foundValidTarget) {
+            this.DriveSys.setLimelightTx(0);
         }
 
         this.DriveSys.SetTargetingAprilTag(gamepad1.y);
 
         this.DriveSys.SetTargetingBall(gamepad1.right_bumper);
+
+        Robot.IntakeShouldOuttake = gamepad2.x;
 
         TelemetryPacket packet = new TelemetryPacket();
 

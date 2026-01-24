@@ -31,6 +31,7 @@ public class OutTake {
 
     private double VelocityMargin = 0.01;
 
+    private boolean IsFiring = false;
     private double TargetVelocity = 0;
 
     private boolean AreServosUp = false;
@@ -132,8 +133,22 @@ public class OutTake {
 
     public void SetVelocity(double Velocity) {
         this.TargetVelocity = Velocity;
-        LMotor.setVelocity(Velocity * MaxTicksPerSecond);
-        RMotor.setVelocity(Velocity * MaxTicksPerSecond);
+        UpdateMotorVelocities();
+    }
+
+    public void SetIsFiring(boolean isFiring) {
+        IsFiring = isFiring;
+        UpdateMotorVelocities();
+    }
+
+    private void UpdateMotorVelocities() {
+        if (IsFiring) {
+            LMotor.setVelocity(TargetVelocity * MaxTicksPerSecond);
+            RMotor.setVelocity(TargetVelocity * MaxTicksPerSecond);
+        } else {
+            LMotor.setVelocity(0);
+            RMotor.setVelocity(0);
+        }
     }
 
     public double GetCurrentVelocity() {
@@ -141,7 +156,11 @@ public class OutTake {
     }
 
     public boolean IsAtVelocity() {
-        return Math.abs(GetCurrentVelocity() - TargetVelocity) < VelocityMargin;
+        if (IsFiring) {
+            return Math.abs(GetCurrentVelocity() - TargetVelocity) < VelocityMargin;
+        } else {
+            return true;
+        }
     }
 
 //    public void RunToRPM(double RPM) {
