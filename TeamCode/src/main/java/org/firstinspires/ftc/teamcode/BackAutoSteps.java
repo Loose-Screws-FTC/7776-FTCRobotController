@@ -28,7 +28,9 @@ public class BackAutoSteps {
     TeamColor AllianceColor;
     boolean ShouldFlip;
 
-    public static double LaunchRPM = 1725;
+    public static double LaunchRPM = 1785;
+
+    public static double FireTime = 20;
 
     public BackAutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
         CurrentActionBuilder = ActionBuilder;
@@ -50,12 +52,14 @@ public class BackAutoSteps {
     }
 
     public Action BuildAndGetActionBuilder() {
+        // https://www.desmos.com/calculator/xrp25mvpxb
         Action steps = CurrentActionBuilder
-//            .stopAndAdd(() -> OutTakeController.SetVelocity(LaunchRPM / 6000.0))
-//            .stopAndAdd(() -> OutTakeController.SetIsFiring(true))
+            .stopAndAdd(() -> OutTakeController.SetVelocity(LaunchRPM / 6000.0))
+            .stopAndAdd(() -> OutTakeController.SetIsFiring(true))
             .splineToLinearHeading(MapPose(new Pose2d(0, 5, Math.toRadians(0))), 0)
-//            .splineToLinearHeading(MapPose(new Pose2d(0, 5, Math.toRadians(75))), 0)
-//            .stopAndAdd(Robot.ShootAllBallsAction())
+            .splineToLinearHeading(MapPose(new Pose2d(0, 5, Math.toRadians(70))), 0)
+            .stopAndAdd(new AwaitAction(() -> Runtime.seconds() > FireTime))
+            .stopAndAdd(Robot.ShootAllBallsAction())
             .splineToLinearHeading(MapPose(new Pose2d(20, 5, Math.toRadians(0))), 0)
             .build();
 
