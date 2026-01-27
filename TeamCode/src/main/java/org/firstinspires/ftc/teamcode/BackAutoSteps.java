@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 @Config
-public class LeaveAutoSteps {
+public class BackAutoSteps {
     TrajectoryActionBuilder CurrentActionBuilder;
     MecanumDrive Drive;
     RobotAbstractor Robot;
@@ -30,12 +30,7 @@ public class LeaveAutoSteps {
 
     public static double LaunchRPM = 1725;
 
-    public enum TeamColor {
-        BLUE,
-        RED
-    }
-
-    public LeaveAutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
+    public BackAutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
         CurrentActionBuilder = ActionBuilder;
         this.AllianceColor = AllianceColor;
         this.ShouldFlip = BaseColor != AllianceColor;

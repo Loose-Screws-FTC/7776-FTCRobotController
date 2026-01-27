@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 
 @Autonomous
-public class AutoTest3Red extends LinearOpMode {
+public class AutoRedFront extends LinearOpMode {
     @Override
     public void runOpMode() {
         Globals.telemetry = telemetry;
@@ -36,7 +36,7 @@ public class AutoTest3Red extends LinearOpMode {
         // MecanumDrive.SetShouldSeeBalls(true);
         TrajectoryActionBuilder MainActionBuilder = drive.actionBuilder(beginPose);
 
-        AutoSteps StepsBuilder = new AutoSteps(MainActionBuilder, AutoSteps.TeamColor.RED, drive, robot);
+        FrontAutoSteps StepsBuilder = new FrontAutoSteps(MainActionBuilder, TeamColor.RED, drive, robot);
         StepsBuilder.Init();
 
         Action autoActionSteps = StepsBuilder.BuildAndGetActionBuilder();

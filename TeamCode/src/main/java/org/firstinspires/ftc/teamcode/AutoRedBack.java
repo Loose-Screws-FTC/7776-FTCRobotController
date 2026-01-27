@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 
 @Autonomous
-public class AutoLeaveRed extends LinearOpMode {
+public class AutoRedBack extends LinearOpMode {
     @Override
     public void runOpMode() {
         Globals.telemetry = telemetry;
@@ -36,7 +36,7 @@ public class AutoLeaveRed extends LinearOpMode {
         // MecanumDrive.SetShouldSeeBalls(true);
         TrajectoryActionBuilder MainActionBuilder = drive.actionBuilder(beginPose);
 
-        LeaveAutoSteps StepsBuilder = new LeaveAutoSteps(MainActionBuilder, LeaveAutoSteps.TeamColor.RED, drive, robot);
+        BackAutoSteps StepsBuilder = new BackAutoSteps(MainActionBuilder, TeamColor.RED, drive, robot);
         StepsBuilder.Init();
 
         Action autoActionSteps = StepsBuilder.BuildAndGetActionBuilder();

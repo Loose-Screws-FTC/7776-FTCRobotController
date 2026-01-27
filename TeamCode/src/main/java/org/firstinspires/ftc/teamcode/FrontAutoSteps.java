@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 @Config
-public class AutoSteps {
+public class FrontAutoSteps {
     TrajectoryActionBuilder CurrentActionBuilder;
     MecanumDrive Drive;
     RobotAbstractor Robot;
@@ -35,7 +35,7 @@ public class AutoSteps {
         RED
     }
 
-    public AutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
+    public FrontAutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
         CurrentActionBuilder = ActionBuilder;
         this.AllianceColor = AllianceColor;
         this.ShouldFlip = BaseColor != AllianceColor;

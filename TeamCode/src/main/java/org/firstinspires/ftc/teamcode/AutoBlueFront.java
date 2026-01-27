@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 @Autonomous
-public class AutoTest3Blue extends LinearOpMode {
+public class AutoBlueFront extends LinearOpMode {
     @Override
     public void runOpMode() {
         Globals.telemetry = telemetry;
@@ -55,7 +55,7 @@ public class AutoTest3Blue extends LinearOpMode {
         // MecanumDrive.SetShouldSeeBalls(true);
         TrajectoryActionBuilder MainActionBuilder = drive.actionBuilder(beginPose);
 
-        AutoSteps StepsBuilder = new AutoSteps(MainActionBuilder, AutoSteps.TeamColor.BLUE, drive, robot);
+        FrontAutoSteps StepsBuilder = new FrontAutoSteps(MainActionBuilder, TeamColor.BLUE, drive, robot);
         StepsBuilder.Init();
 
         Action autoActionSteps = StepsBuilder.BuildAndGetActionBuilder();
