@@ -79,10 +79,25 @@ public class TeleOp1 extends OpMode {
             this.Robot.OutTakeSys.ServosDown();
         }
 
-        if (gamepad2.dpad_up) {
+        // if our alliance partner scores an artifact
+        if (gamepad2.dpadUpWasPressed()) {
+            this.Robot.ConsumeBallColor();
+        }
+        // if we miss launching an artifact
+        if (gamepad2.dpadDownWasPressed()) {
+            this.Robot.ConsumeBallColor();
+        }
+        // if the classifier is cleared
+        if (gamepad2.dpadLeftWasPressed()) {
+            this.Robot.ResetMotifProgress();
+        }
+
+        telemetry.addData("Motif progress", Integer.toString(Robot.PatternOffset) + "/3");
+
+        if (gamepad2.left_stick_y > 0.5) {
             this.OuttakeRPMMult -= 0.02 * DeltaTime;
         }
-        if (gamepad2.dpad_down) {
+        if (gamepad2.left_stick_y < -0.5) {
             this.OuttakeRPMMult += 0.02 * DeltaTime;
         }
         telemetry.addData("raw DistanceBasedRPM", this.DistanceBasedRPM);

@@ -167,7 +167,7 @@ public class DecoderWheel {
 
     public boolean HasAnyRealBalls() {
         for (BallColor color : BallsInWheel) {
-            if (color != BallColor.NONE && color != BallColor.DUMMY) return true;
+            if (color.IsBall) return true;
         }
         return false;
     }
@@ -176,8 +176,8 @@ public class DecoderWheel {
         BallsInWheel.set(IntakeSlot, Color);
     }
 
-    public void ClearOuttakeSlot() {
-        BallsInWheel.set(0, BallColor.NONE);
+    public BallColor ClearOuttakeSlot() {
+        return BallsInWheel.set(0, BallColor.NONE);
     }
 
     public void SetCurrentColors(BallColor ball1, BallColor ball2, BallColor ball3) {

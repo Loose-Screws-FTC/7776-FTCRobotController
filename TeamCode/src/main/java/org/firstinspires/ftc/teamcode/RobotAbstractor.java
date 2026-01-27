@@ -55,6 +55,8 @@ public class RobotAbstractor {
 
     public boolean IntakeShouldOuttake = false;
 
+    public int PatternOffset = 0;
+
     public RobotAbstractor(HardwareMap hardwareMap) {
         DcMotorEx OutLeft = (DcMotorEx)hardwareMap.get(DcMotor.class, "outl");
         DcMotorEx OutRight = (DcMotorEx)hardwareMap.get(DcMotor.class, "outr");
@@ -95,9 +97,30 @@ public class RobotAbstractor {
         RunningActions.add(action);
     }
 
+    public BallColor GetNextBallColor() {
+        return BallOrder.GameOrder.Colors[PatternOffset];
+    }
+
+    public void ConsumeBallColor() {
+        PatternOffset = (PatternOffset + 1) % 3;
+    }
+
+    public void UnconsumeBallColor() {
+        if (PatternOffset-- == 0) {
+            PatternOffset = 2;
+        }
+    }
+
+    public void ResetMotifProgress() {
+        PatternOffset = 0;
+    }
+
     public void StartOutTakeBall() {
         this.OutTakeSys.ServosUp();
-        this.DecoderWheelSys.ClearOuttakeSlot();
+        BallColor occupant = this.DecoderWheelSys.ClearOuttakeSlot();
+        if (occupant.IsBall) {
+            ConsumeBallColor();
+        }
     }
 
     public void AutoIntakeUpdate(double deltaTime) {
@@ -191,13 +214,13 @@ public class RobotAbstractor {
             new InstantAction(() -> IntakeSys.SetPower(1)),
             new InstantAction(IntakeSys::ServosToNeutral),
             new SleepAction(0.1), // wait for the intake servos to move
-            new InstantAction(() -> DecoderWheelSys.RevolveToColor(BallOrder.GameOrder.Ball1)),
+            new InstantAction(() -> DecoderWheelSys.RevolveToColor(GetNextBallColor())),
             new WaitOneFrameAction(),
             ShootOneBallAction(),
-            new InstantAction(() -> DecoderWheelSys.RevolveToColor(BallOrder.GameOrder.Ball2)),
+            new InstantAction(() -> DecoderWheelSys.RevolveToColor(GetNextBallColor())),
             new WaitOneFrameAction(),
             ShootOneBallAction(),
-            new InstantAction(() -> DecoderWheelSys.RevolveToColor(BallOrder.GameOrder.Ball3)),
+            new InstantAction(() -> DecoderWheelSys.RevolveToColor(GetNextBallColor())),
             new WaitOneFrameAction(),
             ShootOneBallAction(),
             new InstantAction(() -> IntakeSys.SetPower(0))

@@ -108,7 +108,7 @@ public class FrontAutoSteps {
             .stopAndAdd(() -> OutTakeController.SetIsFiring(true))
             .splineToLinearHeading(MapPose(new Pose2d(10, 18, Math.toRadians(-45))), 0)
             .stopAndAdd(new FindBallOrderAction(Robot))
-            .stopAndAdd(() -> DecoderWheelController.RevolveToColor(BallOrder.GameOrder.Ball1))
+            .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetNextBallColor()))
 
             .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(45))), 0)
             .stopAndAdd(Robot.ShootAllBallsAction())
