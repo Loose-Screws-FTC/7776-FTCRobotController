@@ -94,12 +94,8 @@ public class TeleOp1 extends OpMode {
 
         telemetry.addData("Motif progress", Integer.toString(Robot.PatternOffset) + "/3");
 
-        if (gamepad2.left_stick_y > 0.5) {
-            this.OuttakeRPMMult -= 0.02 * DeltaTime;
-        }
-        if (gamepad2.left_stick_y < -0.5) {
-            this.OuttakeRPMMult += 0.02 * DeltaTime;
-        }
+        this.OuttakeRPMMult -= 0.02 * gamepad2.left_stick_y * DeltaTime;
+
         telemetry.addData("raw DistanceBasedRPM", this.DistanceBasedRPM);
         telemetry.addData("mult DistanceBasedRPM", this.OuttakeRPMMult * this.DistanceBasedRPM);
         telemetry.addData("RPM mult", this.OuttakeRPMMult);
