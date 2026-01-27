@@ -32,6 +32,8 @@ public class BackAutoSteps {
 
     public static double FireTime = 20;
 
+    public static boolean Fire3Balls = true;
+
     public BackAutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
         CurrentActionBuilder = ActionBuilder;
         this.AllianceColor = AllianceColor;
@@ -53,15 +55,28 @@ public class BackAutoSteps {
 
     public Action BuildAndGetActionBuilder() {
         // https://www.desmos.com/calculator/xrp25mvpxb
-        Action steps = CurrentActionBuilder
-            .stopAndAdd(() -> OutTakeController.SetVelocity(LaunchRPM / 6000.0))
-            .stopAndAdd(() -> OutTakeController.SetIsFiring(true))
-            .splineToLinearHeading(MapPose(new Pose2d(0, 5, Math.toRadians(0))), 0)
-            .splineToLinearHeading(MapPose(new Pose2d(0, 5, Math.toRadians(70))), 0)
-            .stopAndAdd(new AwaitAction(() -> Runtime.seconds() > FireTime))
-            .stopAndAdd(Robot.ShootAllBallsAction())
-            .splineToLinearHeading(MapPose(new Pose2d(20, 5, Math.toRadians(0))), 0)
-            .build();
+        TrajectoryActionBuilder builder = CurrentActionBuilder;
+
+        if (Fire3Balls) {
+            builder = builder
+                .stopAndAdd(() -> OutTakeController.SetVelocity(LaunchRPM / 6000.0))
+                .stopAndAdd(() -> OutTakeController.SetIsFiring(true));
+        }
+        
+        builder = builder
+            .splineToLinearHeading(MapPose(new Pose2d(0, 8, Math.toRadians(0))), 0);
+        
+        if (Fire3Balls) {
+            builder = builder
+                .splineToLinearHeading(MapPose(new Pose2d(0, 8, Math.toRadians(70))), 0)
+                .stopAndAdd(new AwaitAction(() -> Runtime.seconds() > FireTime))
+                .stopAndAdd(Robot.ShootAllBallsAction());
+        }
+
+        builder = builder
+            .splineToLinearHeading(MapPose(new Pose2d(20, 8, Math.toRadians(0))), 0);
+        
+        Action steps = builder.build();
 
         return new ParallelAction(
             new UpdateAction(DecoderWheelController::Update),
