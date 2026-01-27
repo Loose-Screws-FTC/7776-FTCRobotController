@@ -24,8 +24,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class Drive {
-    public static Telemetry telemetry;
-
     private DcMotor FlMotor;
     private DcMotor FrMotor;
     private DcMotor BlMotor;
@@ -108,15 +106,15 @@ public class Drive {
 
 
         IMU.Parameters IMUParameters = new IMU.Parameters(
-                new RevHubOrientationOnRobot(new Orientation(
-                        AxesReference.INTRINSIC,
-                        AxesOrder.ZYX,
-                        AngleUnit.RADIANS,
-                        0,
-                        0,
-                        (float)Math.PI / 4,
-                        0
-                ))
+            new RevHubOrientationOnRobot(new Orientation(
+                AxesReference.INTRINSIC,
+                AxesOrder.ZYX,
+                AngleUnit.RADIANS,
+                0,
+                0,
+                (float)Math.PI / 4,
+                0
+            ))
         );
 
         this.Imu = Imu;
@@ -158,13 +156,13 @@ public class Drive {
 
         if (this.CurrentMode == DriveMode.CONTROLLER_DRIVEN) {
             Vector2 DriveDirection = new Vector2(Gamepad1.left_stick_x, Gamepad1.left_stick_y);
-            DriveDirection.MultNum(-1);
+            DriveDirection.Scale(-1);
             //DriveDirection.MultVector2(new Vector2(1, -1));
-            DriveDirection.SquareVectWithSign(); // Square the input for a better speed curve
-            DriveDirection.MultNum(DriveSpeedMult);
+            DriveDirection.SquareWithSign(); // Square the input for a better speed curve
+            DriveDirection.Scale(DriveSpeedMult);
 
             if (Gamepad1.b) {
-                DriveDirection.DivNum(2);
+                DriveDirection.Divide(2);
             }
 
             double turnAmount = 0;
@@ -179,16 +177,16 @@ public class Drive {
                     !Double.isNaN(LeftDistance) && Double.isNaN(RightDistance)
             ) {
                 Vector2 Vect = new Vector2(Math.sin(CurrentRot + Math.PI / 2), Math.cos(CurrentRot + Math.PI / 2));
-                Vect.DivNum(3.5);
-                DriveDirection.AddVector2(Vect);
+                Vect.Divide(3.5);
+                DriveDirection.Add(Vect);
             }
 
             else if (this.BallTargetMode &&
                     !Double.isNaN(RightDistance) && Double.isNaN(LeftDistance)
             ) {
                 Vector2 Vect = new Vector2(Math.sin(CurrentRot - Math.PI / 2), Math.cos(CurrentRot - Math.PI / 2));
-                Vect.DivNum(3.5);
-                DriveDirection.AddVector2(Vect);
+                Vect.Divide(3.5);
+                DriveDirection.Add(Vect);
             } else if (Math.abs(Gamepad1.right_stick_x) > 0.01) {
                 turnAmount = Gamepad1.right_stick_x * Gamepad1.right_stick_x * Math.signum(Gamepad1.right_stick_x) * RotSpeedMult;
                 TargetRot = Double.NaN;
@@ -234,10 +232,10 @@ public class Drive {
         this.CurrentState = DriveState.MOVING_IN_LOCAL_SPACE;
         this.CurrentStateTimer = Time;
 
-        FlSpeed = (MoveDirection.GetY() - MoveDirection.GetX()) * Speed + TurnAmount;
-        FrSpeed = (MoveDirection.GetY() + MoveDirection.GetX()) * Speed - TurnAmount;
-        BlSpeed = (MoveDirection.GetY() + MoveDirection.GetX()) * Speed + TurnAmount;
-        BrSpeed = (MoveDirection.GetY() - MoveDirection.GetX()) * Speed - TurnAmount;
+        FlSpeed = (MoveDirection.Y - MoveDirection.X) * Speed + TurnAmount;
+        FrSpeed = (MoveDirection.Y + MoveDirection.X) * Speed - TurnAmount;
+        BlSpeed = (MoveDirection.Y + MoveDirection.X) * Speed + TurnAmount;
+        BrSpeed = (MoveDirection.Y - MoveDirection.X) * Speed - TurnAmount;
     }
 
     /**
@@ -249,8 +247,8 @@ public class Drive {
      */
     public void MoveInGlobalDirectionAndTurn(Vector2 MoveDirection, double Speed, double TurnAmount, double Time) {
         Vector2 LocalMoveDirection = new Vector2(
-                MoveDirection.GetX() * Math.cos(CurrentRot) - MoveDirection.GetY() * Math.sin(CurrentRot),
-                MoveDirection.GetX() * Math.sin(CurrentRot) + MoveDirection.GetY() * Math.cos(CurrentRot)
+            MoveDirection.X * Math.cos(CurrentRot) - MoveDirection.Y * Math.sin(CurrentRot),
+            MoveDirection.X * Math.sin(CurrentRot) + MoveDirection.Y * Math.cos(CurrentRot)
         );
 
         MoveInLocalDirectionAndTurn(LocalMoveDirection, Speed, TurnAmount, Time);
