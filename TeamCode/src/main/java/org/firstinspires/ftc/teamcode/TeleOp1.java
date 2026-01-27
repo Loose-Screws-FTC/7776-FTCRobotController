@@ -24,10 +24,6 @@ public class TeleOp1 extends OpMode {
     double DistanceBasedRPM = 1600;
     public double OuttakeRPMMult = 1;
 
-    //Distance measurements of the left and right intake sensors. Probably there's a better way to do this but I don't know how -Rowan
-    public static double LeftDistance;
-    public static double RightDistance;
-
     public RobotAbstractor Robot;
     public Drive DriveSys;
 
@@ -41,14 +37,12 @@ public class TeleOp1 extends OpMode {
         DcMotor BlMotor = hardwareMap.get(DcMotor.class, "bl");
         DcMotor BrMotor = hardwareMap.get(DcMotor.class, "br");
 
+        this.Robot = new RobotAbstractor(hardwareMap);
+
         IMU Imu = hardwareMap.get(IMU.class, "imu");
 
         this.DriveSys = new Drive();
-        this.DriveSys.Init(FlMotor, FrMotor, BlMotor, BrMotor, gamepad1, gamepad2, Imu);
-
-        this.Robot = new RobotAbstractor(hardwareMap);
-        this.DriveSys.SetDriveMode(Drive.DriveMode.CONTROLLER_DRIVEN);
-
+        this.DriveSys.Init(FlMotor, FrMotor, BlMotor, BrMotor, Robot.LeftDistanceSensor, Robot.RightDistanceSensor, Imu);
     }
 
     // Has to be lowercase loop()
@@ -60,16 +54,6 @@ public class TeleOp1 extends OpMode {
         }
         double DeltaTime = CurrTime - LastRecTime;
         LastRecTime = CurrTime;
-
-        this.Robot.Update(DeltaTime);
-        this.DriveSys.Update(DeltaTime);
-
-        //Update the distance variables once per loop
-        //Data comes from RobotAbstractor.java and is immediately passed through to Drive.java :| (this is not fantastic)
-        LeftDistance = this.Robot.LeftDistanceSensor.getDistance(DistanceUnit.CM);
-        RightDistance = this.Robot.RightDistanceSensor.getDistance(DistanceUnit.CM);
-
-        this.Robot.OutTakeSys.SetVelocity((this.OuttakeRPMMult * DistanceBasedRPM) / 6000.0);
 
         if (gamepad2.a) {
             this.Robot.OutTakeSys.SetIsFiring(true);
@@ -106,6 +90,9 @@ public class TeleOp1 extends OpMode {
         telemetry.addData("RPM mult", this.OuttakeRPMMult);
 
         Robot.ShouldIntake = gamepad1.right_bumper;
+
+        Robot.IntakeShouldOuttake = gamepad2.x;
+
         Robot.AutoIntakeUpdate(DeltaTime);
 
         if (gamepad2.b) {
@@ -113,11 +100,11 @@ public class TeleOp1 extends OpMode {
         }
 
         if (gamepad1.left_bumper) {
-            this.DriveSys.SetDriveSpeed(0.2);
-            this.DriveSys.SetRotationSpeed(0.2);
+            this.DriveSys.DriveSpeed = 0.2;
+            this.DriveSys.TurnSpeed = 0.2;
         } else {
-            this.DriveSys.SetDriveSpeed(1);
-            this.DriveSys.SetRotationSpeed(1);
+            this.DriveSys.DriveSpeed = 1;
+            this.DriveSys.TurnSpeed = 1;
         }
 
         if (gamepad1.dpadRightWasPressed()) {
@@ -136,23 +123,22 @@ public class TeleOp1 extends OpMode {
             this.Robot.DecoderWheelSys.RevolveToColor(BallColor.GREEN);
         }
 
-        //Z-targeting: works like in Zelda (:
-        //Hold RightTrigger to hold orientation on Apriltag
+        // Z-targeting: works like in Zelda (:
         LLResult llResult = this.Robot.Limelight.getLatestResult();
-        boolean foundValidTarget = false;
         if (llResult != null && llResult.isValid()) {
             for (LLResultTypes.FiducialResult fidResult : llResult.getFiducialResults()) {
                 if (fidResult.getFiducialId() != 20 && fidResult.getFiducialId() != 24) {
                     continue;
                 }
 
-                foundValidTarget = true;
                 // Target left/right distance from center of fov (degrees)
                 double tx = fidResult.getTargetXDegrees() + CameraDegreesXOffset;
                 // Target up/down distance from center of fov (degrees)
                 double ty = fidResult.getTargetYDegrees();
 
-                this.DriveSys.setLimelightTx(tx); // Pass Tx to drive system
+                if (gamepad1.y) {
+                    DriveSys.SetRelativeAngleTarget(Math.toRadians(tx));
+                }
 
                 telemetry.addData("Target X", tx);
                 telemetry.addData("Target Y", ty);
@@ -167,34 +153,38 @@ public class TeleOp1 extends OpMode {
 
                 double angleToGoal =  Math.toRadians(limelightMountAngle + ty);
 
-                double targetDistance = (targetHeight - limelightLensHeight)/Math.tan(angleToGoal);
+                double targetDistance = (targetHeight - limelightLensHeight) / Math.tan(angleToGoal);
 
-                telemetry.addData("Target Distance",targetDistance);
+                telemetry.addData("Target Distance", targetDistance);
 
                 DistanceBasedRPM = OutTake.GetRPMAt(targetDistance);
             }
         }
-        if (!foundValidTarget) {
-            this.DriveSys.setLimelightTx(0);
-        }
 
-        this.DriveSys.SetTargetingAprilTag(gamepad1.y);
+        this.Robot.OutTakeSys.SetVelocity((this.OuttakeRPMMult * DistanceBasedRPM) / 6000.0);
 
-        this.DriveSys.SetTargetingBall(gamepad1.right_bumper);
+        this.DriveSys.ShouldAlignToBall = gamepad1.right_bumper;
 
-        Robot.IntakeShouldOuttake = gamepad2.x;
+        // emergency stop
+        // if (gamepad2.left_bumper) {
+        //     DriveSys.HaltTimer = 1;
+        // }
 
-        TelemetryPacket packet = new TelemetryPacket();
+        this.DriveSys.Update(DeltaTime, gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
-        NormalizedRGBA colors = Robot.ColorSensor.getNormalizedColors();
-        packet.put("red", colors.red);
-        packet.put("green", colors.green);
-        packet.put("blue", colors.blue);
-        packet.put("distance", ((DistanceSensor)Robot.ColorSensor).getDistance(DistanceUnit.CM));
+        this.Robot.Update(DeltaTime);
 
-        packet.put("Left Distance", this.Robot.LeftDistanceSensor.getDistance(DistanceUnit.CM));
-        packet.put("Right Distance", this.Robot.RightDistanceSensor.getDistance(DistanceUnit.CM));
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
+        // TelemetryPacket packet = new TelemetryPacket();
+
+        // NormalizedRGBA colors = Robot.ColorSensor.getNormalizedColors();
+        // packet.put("red", colors.red);
+        // packet.put("green", colors.green);
+        // packet.put("blue", colors.blue);
+        // packet.put("distance", ((DistanceSensor)Robot.ColorSensor).getDistance(DistanceUnit.CM));
+
+        // packet.put("Left Distance", this.Robot.LeftDistanceSensor.getDistance(DistanceUnit.CM));
+        // packet.put("Right Distance", this.Robot.RightDistanceSensor.getDistance(DistanceUnit.CM));
+        // FtcDashboard.getInstance().sendTelemetryPacket(packet);
 //        telemetry.addData("Ball Detected: ", BallDetected);
 
 //        telemetry.addData("TargetRPM", Math.round(this.TargetRPM));

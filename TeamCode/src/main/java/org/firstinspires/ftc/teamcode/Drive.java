@@ -23,57 +23,32 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
+@Config
 public class Drive {
     private DcMotor FlMotor;
     private DcMotor FrMotor;
     private DcMotor BlMotor;
     private DcMotor BrMotor;
 
-    private double FlSpeed;
-    private double FrSpeed;
-    private double BlSpeed;
-    private double BrSpeed;
+    private DistanceSensor LeftDistanceSensor;
+    private DistanceSensor RightDistanceSensor;
 
-    private Gamepad Gamepad1;
-    private Gamepad Gamepad2;
+    private double Heading = 0;
+    private double TargetRot = Double.NaN;
 
-    private DriveState CurrentState = DriveState.IDLE;
-    private double CurrentStateTimer;
-    private boolean AprilTagTargetMode = false;
-    private DriveMode CurrentMode = DriveMode.MANUAL;
+    public double DriveSpeed = 1;
+    public double TurnSpeed = 1;
 
-    private double DriveSpeedMult = 1;
-    private double RotSpeedMult = 1;
+    public static double StrafeSpeed = 0.3;
 
     public static double MaintainRotP = 1;
     public static double RotStoreSpeed = 0.05;
 
-    private double CurrentRot;
-    private double TargetRot = Double.NaN;
+    public boolean ShouldAlignToBall = false;
 
-    private IMU Imu;
+    public double HaltTimer = 0;
 
-    private double limelightTx = 0;
-    private boolean BallTargetMode;
-
-    public void setLimelightTx(double tx) {
-        this.limelightTx = tx;
-    }
-
-    public enum DriveState {
-        IDLE,
-        MOVING_IN_LOCAL_SPACE,
-        MOVING_IN_GLOBAL_SPACE,
-        MOVING_TO_POINT,
-        E_STOP
-    }
-
-    public enum DriveMode {
-        MANUAL,
-        CONTROLLER_DRIVEN
-    }
-
-    public void Init(DcMotor FlDrive, DcMotor FrDrive, DcMotor BlDrive, DcMotor BrDrive, Gamepad Gamepad1, Gamepad Gamepad2, IMU Imu) {
+    public void Init(DcMotor FlDrive, DcMotor FrDrive, DcMotor BlDrive, DcMotor BrDrive, IMU Imu, DistanceSensor LeftDistanceSensor, DistanceSensor RightDistanceSensor) {
         this.FlMotor = FlDrive;
         this.FrMotor = FrDrive;
         this.BlMotor = BlDrive;
@@ -94,17 +69,6 @@ public class Drive {
         this.BlMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         this.BrMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        this.FlSpeed = 0;
-        this.FrSpeed = 0;
-        this.BlSpeed = 0;
-        this.BrSpeed = 0;
-
-        this.Gamepad1 = Gamepad1;
-        this.Gamepad2 = Gamepad2;
-
-        this.CurrentStateTimer = 0;
-
-
         IMU.Parameters IMUParameters = new IMU.Parameters(
             new RevHubOrientationOnRobot(new Orientation(
                 AxesReference.INTRINSIC,
@@ -121,156 +85,90 @@ public class Drive {
         this.Imu.initialize(IMUParameters);
         this.Imu.resetYaw();
 
+        this.LeftDistanceSensor = LeftDistanceSensor;
+        this.RightDistanceSensor = RightDistanceSensor;
     }
 
     public void ResetIMU() {
+        TargetRot = Double.NaN;
         this.Imu.resetYaw();
     }
 
-    public void Update(double DeltaTime) {
-        this.CurrentStateTimer -= DeltaTime;
-
-        CurrentRot = this.Imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-
-        if (Double.isNaN(TargetRot)) {
-            double yRotVel = this.Imu.getRobotAngularVelocity(AngleUnit.RADIANS).yRotationRate;
-            if (Math.abs(yRotVel) < RotStoreSpeed) {
-                TargetRot = CurrentRot;
-            }
-        }
-
-        if (this.Gamepad2.left_bumper) {
-            this.CurrentState = DriveState.E_STOP;
-            this.CurrentStateTimer = 1;
-        }
-
-        if (this.CurrentStateTimer <= 0) {
-            this.CurrentStateTimer = 0;
-            this.CurrentState = DriveState.IDLE;
-        }
-
-        if (this.CurrentState == DriveState.E_STOP) {
+    public void Update(double deltaTime, double inputX, double inputY, double inputTurn) {
+        if (HaltTimer > 0) {
+            HaltTimer -= deltaTime;
             Stop();
             return;
         }
 
-        if (this.CurrentMode == DriveMode.CONTROLLER_DRIVEN) {
-            Vector2 DriveDirection = new Vector2(Gamepad1.left_stick_x, Gamepad1.left_stick_y);
-            DriveDirection.Scale(-1);
-            //DriveDirection.MultVector2(new Vector2(1, -1));
-            DriveDirection.SquareWithSign(); // Square the input for a better speed curve
-            DriveDirection.Scale(DriveSpeedMult);
+        Heading = Imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-            if (Gamepad1.b) {
-                DriveDirection.Divide(2);
+        if (Double.isNaN(TargetRot)) {
+            double yRotVel = this.Imu.getRobotAngularVelocity(AngleUnit.RADIANS).yRotationRate;
+            if (Math.abs(yRotVel) < RotStoreSpeed) {
+                TargetRot = Heading;
             }
-
-            double turnAmount = 0;
-            if (this.AprilTagTargetMode) {
-//                turnAmount = 0.025 * limelightTx;
-                TargetRot = CurrentRot + Math.toRadians(limelightTx);
-            }
-
-            //Check if we are currently intaking and there is an object in front of one (not both) of the sensors.
-            //Note the rev color/distance sensor v2 returns NaN when there is no object in fron of it, the v3 and other distance sensors behave very differently
-            else if (this.BallTargetMode &&
-                    !Double.isNaN(LeftDistance) && Double.isNaN(RightDistance)
-            ) {
-                Vector2 Vect = new Vector2(Math.sin(CurrentRot + Math.PI / 2), Math.cos(CurrentRot + Math.PI / 2));
-                Vect.Divide(3.5);
-                DriveDirection.Add(Vect);
-            }
-
-            else if (this.BallTargetMode &&
-                    !Double.isNaN(RightDistance) && Double.isNaN(LeftDistance)
-            ) {
-                Vector2 Vect = new Vector2(Math.sin(CurrentRot - Math.PI / 2), Math.cos(CurrentRot - Math.PI / 2));
-                Vect.Divide(3.5);
-                DriveDirection.Add(Vect);
-            } else if (Math.abs(Gamepad1.right_stick_x) > 0.01) {
-                turnAmount = Gamepad1.right_stick_x * Gamepad1.right_stick_x * Math.signum(Gamepad1.right_stick_x) * RotSpeedMult;
-                TargetRot = Double.NaN;
-            } else if (!Double.isNaN(TargetRot)) {
-                double TurnGoal = (CurrentRot - TargetRot + Math.PI) % (Math.PI * 2) - Math.PI;
-                turnAmount = TurnGoal * MaintainRotP;
-            }
-
-            MoveInGlobalDirectionAndTurn(DriveDirection.GetNormal(), DriveDirection.GetMagnitude(), turnAmount, 1);
         }
 
-        if (this.CurrentState != DriveState.IDLE) {
-            this.FlMotor.setPower(FlSpeed);
-            this.FrMotor.setPower(FrSpeed);
-            this.BlMotor.setPower(BlSpeed);
-            this.BrMotor.setPower(BrSpeed);
+        // direction, relative to the robot, that is absolute forward
+        Vector2 absForward = Vector2.AtAngle(-Heading);
+
+        // the direction, relative to the field, that the robot is facing
+        Vector2 fieldDirection = Vector.AtAngle(Heading);
+
+        Vector2 inputLateral = new Vector2(inputX, inputY);
+        inputLateral.Pow(3);
+
+        Vector2 lateral;
+        if (ShouldAlignToBall) {
+            double leftDistance = LeftDistanceSensor.getDistance(DistanceUnit.CM);
+            double rightDistance = RightDistanceSensor.getDistance(DistanceUnit.CM);
+            boolean ballOnLeft = !Double.isNaN(leftDistance);
+            boolean ballOnRight = !Double.isNaN(rightDistance);
+
+            double rightPower = 0;
+            if (ballOnLeft && !ballOnRight) {
+                rightPower = -1;
+            } else if (ballOnRight && !ballOnLeft) {
+                rightPower = 1;
+            }
+
+            lateral = new Vector2(rightPower, inputLateral.Dot(fieldDirection));
         } else {
-            this.FlMotor.setPower(0);
-            this.FrMotor.setPower(0);
-            this.BlMotor.setPower(0);
-            this.BrMotor.setPower(0);
+            lateral = inputLateral;
+            lateral.Scale(-DriveSpeed);
+            lateral.ComplexMultiply(absForward);
         }
+
+        double turn = 0;
+        if (Math.abs(inputTurn) > 0.01) {
+            turn = Math.pow(inputTurn * TurnSpeed, 3);
+            TargetRot = Double.NaN;
+        } else if (!Double.isNaN(TargetRot)) {
+            double turnGoal = (Heading - TargetRot + Math.PI) % (Math.PI * 2) - Math.PI;
+            turn = turnGoal * MaintainRotP;
+        }
+
+        double FlPower = lateral.Y - lateral.X + turn;
+        double FrPower = lateral.Y + lateral.X - turn;
+        double BlPower = lateral.Y + lateral.X + turn;
+        double BrPower = lateral.Y - lateral.X - turn;
+
+        this.FlMotor.setPower(FlPower);
+        this.FrMotor.setPower(FrPower);
+        this.BlMotor.setPower(BlPower);
+        this.BrMotor.setPower(BrPower);
     }
 
-    public void SetTargetingAprilTag(boolean isTargeting){
-        this.AprilTagTargetMode = isTargeting;
+    // remember, angle must be in radians
+    public void SetRelativeAngleTarget(double angle) {
+        TargetRot = Heading + angle;
     }
 
-    public void SetTargetingBall(boolean isTargeting) {this.BallTargetMode = isTargeting;}
-
-    public void SetDriveMode(DriveMode Mode) {
-        this.CurrentMode = Mode;
-    }
-
-    /**
-     * Moves the bot in local space for a desired time.
-     * @param MoveDirection Direction that the bot will move.
-     * @param Speed (Value 0-1) — The speed at which the bot will move.
-     * @param TurnAmount How fast and in what direction the bot will turn.
-     * @param Time How long the bot will move for.
-     */
-    public void MoveInLocalDirectionAndTurn(Vector2 MoveDirection, double Speed, double TurnAmount, double Time) {
-        this.CurrentState = DriveState.MOVING_IN_LOCAL_SPACE;
-        this.CurrentStateTimer = Time;
-
-        FlSpeed = (MoveDirection.Y - MoveDirection.X) * Speed + TurnAmount;
-        FrSpeed = (MoveDirection.Y + MoveDirection.X) * Speed - TurnAmount;
-        BlSpeed = (MoveDirection.Y + MoveDirection.X) * Speed + TurnAmount;
-        BrSpeed = (MoveDirection.Y - MoveDirection.X) * Speed - TurnAmount;
-    }
-
-    /**
-     * Moves the bot in global space for a desired time.
-     * @param MoveDirection Direction that the bot will move.
-     * @param Speed (Value 0-1) — The speed at which the bot will move.
-     * @param TurnAmount How fast and in what direction the bot will turn.
-     * @param Time How long the bot will move for.
-     */
-    public void MoveInGlobalDirectionAndTurn(Vector2 MoveDirection, double Speed, double TurnAmount, double Time) {
-        Vector2 LocalMoveDirection = new Vector2(
-            MoveDirection.X * Math.cos(CurrentRot) - MoveDirection.Y * Math.sin(CurrentRot),
-            MoveDirection.X * Math.sin(CurrentRot) + MoveDirection.Y * Math.cos(CurrentRot)
-        );
-
-        MoveInLocalDirectionAndTurn(LocalMoveDirection, Speed, TurnAmount, Time);
-    }
-
-    public void SetDriveSpeed(double Speed) {
-        this.DriveSpeedMult = Speed;
-    }
-
-    public void SetRotationSpeed(double Speed) {
-        this.RotSpeedMult = Speed;
-    }
-
-    /** Fully stops the robot */
     public void Stop() {
         this.FlMotor.setPower(0);
         this.FrMotor.setPower(0);
         this.BlMotor.setPower(0);
         this.BrMotor.setPower(0);
-        this.FlSpeed = 0;
-        this.FrSpeed = 0;
-        this.BlSpeed = 0;
-        this.BrSpeed = 0;
     }
 }
