@@ -19,6 +19,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+import java.io.BufferedReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -113,6 +115,74 @@ public class RobotAbstractor {
 
     public BallColor GetMotifBallColor(int nth) {
         return BallOrder.GameOrder.Colors[(MotifOffset + nth) % 3];
+    }
+
+    public void ShowClassifierBallCountInTelemetry() {
+        String[] arts = {
+            " ## \n" +
+            "#  #\n" +
+            "#  #\n" +
+            "#  #\n" +
+            " ## ",
+
+            " ## \n" +
+            "  # \n" +
+            "  # \n" +
+            "  # \n" +
+            " ###",
+
+            "### \n" +
+            "   #\n" +
+            "  # \n" +
+            " #  \n" +
+            "####",
+
+            " ###\n" +
+            "   #\n" +
+            " ###\n" +
+            "   #\n" +
+            " ###",
+
+            "#  #\n" +
+            "#  #\n" +
+            "####\n" +
+            "   #\n" +
+            "   #",
+
+            "####\n" +
+            "#   \n" +
+            "####\n" +
+            "   #\n" +
+            "### ",
+
+            " ###\n" +
+            "#   \n" +
+            "####\n" +
+            "#  #\n" +
+            "### ",
+
+            "####\n" +
+            "   #\n" +
+            "  # \n" +
+            " #  \n" +
+            "#   ",
+
+            " ## \n" +
+            "#  #\n" +
+            " ## \n" +
+            "#  #\n" +
+            " ## ",
+
+            " ## \n" +
+            "#  #\n" +
+            "####\n" +
+            "   #\n" +
+            "### "
+        };
+        String art = arts[ClassifierBallsHeld];
+        for (String line : art.split("\\n")) {
+            Globals.telemetry.addLine(line);
+        }
     }
 
     public void AddToClassifier() {

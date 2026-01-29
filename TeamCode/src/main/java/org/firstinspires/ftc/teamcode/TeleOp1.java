@@ -83,7 +83,7 @@ public class TeleOp1 extends OpMode {
             this.Robot.ClearClassifier();
         }
 
-        telemetry.addData("Classifier #", Integer.toString(Robot.ClassifierBallsHeld));
+        Robot.ShowClassifierBallCountInTelemetry();
 
         this.OuttakeRPMMult -= 0.02 * gamepad2.left_stick_y * DeltaTime;
 
