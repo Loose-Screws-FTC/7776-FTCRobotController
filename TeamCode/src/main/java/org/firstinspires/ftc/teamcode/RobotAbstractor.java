@@ -21,7 +21,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 @Config
 public class RobotAbstractor {
@@ -55,7 +54,10 @@ public class RobotAbstractor {
 
     public boolean IntakeShouldOuttake = false;
 
-    public int PatternOffset = 0;
+    public int ClassifierBallsHeld = 0;
+    public int MotifOffset = 0;
+
+    public static final int CLASSIFIER_CAP = 9;
 
     public RobotAbstractor(HardwareMap hardwareMap) {
         DcMotorEx OutLeft = (DcMotorEx)hardwareMap.get(DcMotor.class, "outl");
@@ -97,30 +99,39 @@ public class RobotAbstractor {
         RunningActions.add(action);
     }
 
-    public BallColor GetNextBallColor() {
-        return BallOrder.GameOrder.Colors[PatternOffset];
+    // record the current number of balls in the classifier as the offset for the motif
+    // (if another ball is added to the classifier while the motif is still running,
+    // it won't affect the motif. this can be both a plus and a minus. if the ball is from
+    // the motif being shot by the robot itself, then it would be entirely incorrect to have it
+    // affect the motif progress. if a ball actually was shot into the classifier by our alliance
+    // partner before or during the motif by this robot, then accounting for it would allow us
+    // to score more pattern points. there's no way to (easily) tell which case it is, so we must
+    // ignore all balls recorded in the classifier after the motif starts)
+    public void RecordMotifOffset() {
+        MotifOffset = ClassifierBallsHeld;
     }
 
-    public void ConsumeBallColor() {
-        PatternOffset = (PatternOffset + 1) % 3;
+    public BallColor GetMotifBallColor(int nth) {
+        return BallOrder.GameOrder.Colors[(MotifOffset + nth) % 3];
     }
 
-    public void UnconsumeBallColor() {
-        if (PatternOffset-- == 0) {
-            PatternOffset = 2;
+    public void AddToClassifier() {
+        ClassifierBallsHeld = (ClassifierBallsHeld + 1) % CLASSIFIER_CAP;
+    }
+
+    public void RemoveFromClassifier() {
+        if (ClassifierBallsHeld-- == 0) {
+            ClassifierBallsHeld = CLASSIFIER_CAP - 1;
         }
     }
 
-    public void ResetMotifProgress() {
-        PatternOffset = 0;
+    public void ClearClassifier() {
+        ClassifierBallsHeld = 0;
     }
 
     public void StartOutTakeBall() {
         this.OutTakeSys.ServosUp();
-        BallColor occupant = this.DecoderWheelSys.ClearOuttakeSlot();
-        if (occupant.IsBall) {
-            ConsumeBallColor();
-        }
+        this.DecoderWheelSys.ClearOuttakeSlot();
     }
 
     public void AutoIntakeUpdate(double deltaTime) {
@@ -210,17 +221,18 @@ public class RobotAbstractor {
 
     public Action ShootAllBallsAction() {
         return new SequentialAction(
+            new InstantAction(this::RecordMotifOffset),
             new InstantAction(DecoderWheelSys::AddDummyBalls),
             new InstantAction(() -> IntakeSys.SetPower(1)),
             new InstantAction(IntakeSys::ServosToNeutral),
             new SleepAction(0.1), // wait for the intake servos to move
-            new InstantAction(() -> DecoderWheelSys.RevolveToColor(GetNextBallColor())),
+            new InstantAction(() -> DecoderWheelSys.RevolveToColor(GetMotifBallColor(0))),
             new WaitOneFrameAction(),
             ShootOneBallAction(),
-            new InstantAction(() -> DecoderWheelSys.RevolveToColor(GetNextBallColor())),
+            new InstantAction(() -> DecoderWheelSys.RevolveToColor(GetMotifBallColor(1))),
             new WaitOneFrameAction(),
             ShootOneBallAction(),
-            new InstantAction(() -> DecoderWheelSys.RevolveToColor(GetNextBallColor())),
+            new InstantAction(() -> DecoderWheelSys.RevolveToColor(GetMotifBallColor(2))),
             new WaitOneFrameAction(),
             ShootOneBallAction(),
             new InstantAction(() -> IntakeSys.SetPower(0))

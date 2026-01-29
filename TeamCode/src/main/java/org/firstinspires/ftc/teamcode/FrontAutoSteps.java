@@ -8,7 +8,6 @@ import com.acmerobotics.roadrunner.MinVelConstraint;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.VelConstraint;
@@ -103,7 +102,8 @@ public class FrontAutoSteps {
             .stopAndAdd(() -> OutTakeController.SetIsFiring(true))
             .splineToLinearHeading(MapPose(new Pose2d(10, 18, Math.toRadians(-45))), 0)
             .stopAndAdd(new FindBallOrderAction(Robot))
-            .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetNextBallColor()))
+            .stopAndAdd(() -> Robot.RecordMotifOffset())
+            .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetMotifBallColor(0)))
 
             .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(45))), 0)
             .stopAndAdd(Robot.ShootAllBallsAction())
@@ -111,6 +111,8 @@ public class FrontAutoSteps {
             // Intake first line of balls
             .splineToLinearHeading(MapPose(new Pose2d(48.5, 5, Math.toRadians(-90))), 0)
             .stopAndAdd(IntakeBallsStep.get())
+            .stopAndAdd(() -> Robot.RecordMotifOffset())
+            .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetMotifBallColor(0)))
 //            .stopAndAdd(IntakeBallsStep1.get())
 //            .strafeTo(MapPose(new Pose2d(48.5, -5, Math.toRadians(-90))).position, SlowVel)
 //            .stopAndAdd(IntakeBallsStep2.get())

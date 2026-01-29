@@ -1,20 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Config
 @TeleOp(name="TeleOp1", group="Iterative Opmode")
@@ -79,20 +73,17 @@ public class TeleOp1 extends OpMode {
             this.Robot.OutTakeSys.ServosDown();
         }
 
-        // if our alliance partner scores an artifact
         if (gamepad2.dpadUpWasPressed()) {
-            this.Robot.ConsumeBallColor();
+            this.Robot.AddToClassifier();
         }
-        // if we miss launching an artifact
         if (gamepad2.dpadDownWasPressed()) {
-            this.Robot.ConsumeBallColor();
+            this.Robot.RemoveFromClassifier();
         }
-        // if the classifier is cleared
         if (gamepad2.dpadLeftWasPressed()) {
-            this.Robot.ResetMotifProgress();
+            this.Robot.ClearClassifier();
         }
 
-        telemetry.addData("Motif progress", Integer.toString(Robot.PatternOffset) + "/3");
+        telemetry.addData("Classifier #", Integer.toString(Robot.ClassifierBallsHeld));
 
         this.OuttakeRPMMult -= 0.02 * gamepad2.left_stick_y * DeltaTime;
 
