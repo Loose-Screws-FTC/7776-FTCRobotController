@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.teamcode.TeleOp1.LeftDistance;
-import static org.firstinspires.ftc.teamcode.TeleOp1.RightDistance;
-
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -29,6 +27,8 @@ public class Drive {
     private DcMotor FrMotor;
     private DcMotor BlMotor;
     private DcMotor BrMotor;
+
+    private IMU Imu;
 
     private DistanceSensor LeftDistanceSensor;
     private DistanceSensor RightDistanceSensor;
@@ -114,7 +114,7 @@ public class Drive {
         Vector2 absForward = Vector2.AtAngle(-Heading);
 
         // the direction, relative to the field, that the robot is facing
-        Vector2 fieldDirection = Vector.AtAngle(Heading);
+        Vector2 fieldDirection = Vector2.AtAngle(Heading);
 
         Vector2 inputLateral = new Vector2(inputX, inputY);
         inputLateral.Pow(3);
@@ -128,9 +128,9 @@ public class Drive {
 
             double rightPower = 0;
             if (ballOnLeft && !ballOnRight) {
-                rightPower = -1;
+                rightPower = -StrafeSpeed;
             } else if (ballOnRight && !ballOnLeft) {
-                rightPower = 1;
+                rightPower = StrafeSpeed;
             }
 
             lateral = new Vector2(rightPower, inputLateral.Dot(fieldDirection));

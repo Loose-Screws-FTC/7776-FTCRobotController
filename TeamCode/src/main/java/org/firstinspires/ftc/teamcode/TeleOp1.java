@@ -42,7 +42,7 @@ public class TeleOp1 extends OpMode {
         IMU Imu = hardwareMap.get(IMU.class, "imu");
 
         this.DriveSys = new Drive();
-        this.DriveSys.Init(FlMotor, FrMotor, BlMotor, BrMotor, Robot.LeftDistanceSensor, Robot.RightDistanceSensor, Imu);
+        this.DriveSys.Init(FlMotor, FrMotor, BlMotor, BrMotor, Imu, Robot.LeftDistanceSensor, Robot.RightDistanceSensor);
     }
 
     // Has to be lowercase loop()
