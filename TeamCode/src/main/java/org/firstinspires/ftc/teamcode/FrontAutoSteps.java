@@ -30,11 +30,6 @@ public class FrontAutoSteps {
 
     public static double LaunchRPM = 1625;
 
-    public enum TeamColor {
-        BLUE,
-        RED
-    }
-
     public FrontAutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
         CurrentActionBuilder = ActionBuilder;
         this.AllianceColor = AllianceColor;

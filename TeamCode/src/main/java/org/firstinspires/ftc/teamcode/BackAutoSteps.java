@@ -69,7 +69,7 @@ public class BackAutoSteps {
         if (Fire3Balls) {
             builder = builder
                 .splineToLinearHeading(MapPose(new Pose2d(0, 8, Math.toRadians(70))), 0)
-                .stopAndAdd(new AwaitAction(() -> Runtime.seconds() > FireTime))
+                .stopAndAdd(new AwaitAction(() -> Robot.Runtime.seconds() > FireTime))
                 .stopAndAdd(Robot.ShootAllBallsAction());
         }
 

@@ -24,8 +24,8 @@ public class Vector2 {
     }
 
     public void Sub(Vector2 Vector) {
-        this.X -= Vector.GetX();
-        this.Y -= Vector.GetY();
+        this.X -= Vector.X;
+        this.Y -= Vector.Y;
     }
 
     public void Scale(double Num) {
@@ -34,8 +34,8 @@ public class Vector2 {
     }
 
     public void Scale(Vector2 Vector) {
-        this.X *= Vector.GetX();
-        this.Y *= Vector.GetY();
+        this.X *= Vector.X;
+        this.Y *= Vector.Y;
     }
 
     public void ComplexMultiply(Vector2 other) {
@@ -65,8 +65,8 @@ public class Vector2 {
     }
 
     public void Divide(Vector2 Vector) {
-        this.X /= Vector.GetX();
-        this.Y /= Vector.GetY();
+        this.X /= Vector.X;
+        this.Y /= Vector.Y;
     }
 
     public double GetMagnitude() {

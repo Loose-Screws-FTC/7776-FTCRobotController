@@ -4,14 +4,14 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 
 public enum BallOrder {
-    GREEN1(new BallColor[3] {BallColor.GREEN, BallColor.PURPLE, BallColor.PURPLE}),
-    GREEN2(new BallColor[3] {BallColor.PURPLE, BallColor.GREEN, BallColor.PURPLE}),
-    GREEN3(new BallColor[3] {BallColor.PURPLE, BallColor.PURPLE, BallColor.GREEN}),
-    IDK(new BallColor[3] {BallColor.GREEN, BallColor.PURPLE, BallColor.PURPLE}),;
+    GREEN1(new BallColor[] {BallColor.GREEN, BallColor.PURPLE, BallColor.PURPLE}),
+    GREEN2(new BallColor[] {BallColor.PURPLE, BallColor.GREEN, BallColor.PURPLE}),
+    GREEN3(new BallColor[] {BallColor.PURPLE, BallColor.PURPLE, BallColor.GREEN}),
+    IDK(new BallColor[] {BallColor.GREEN, BallColor.PURPLE, BallColor.PURPLE}),;
 
-    public final BallColor[3] Colors;
+    public final BallColor[] Colors;
 
-    BallOrder(BallColor[3] colors) {
+    BallOrder(BallColor[] colors) {
         Colors = colors;
     }
 
