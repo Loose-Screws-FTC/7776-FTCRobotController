@@ -69,6 +69,8 @@ public class DecoderWheel {
         Globals.telemetry.addData("ball2", this.BallsInWheel.get(1));
         Globals.telemetry.addData("ball3", this.BallsInWheel.get(2));
 
+        Globals.telemetry.addData("decoder wheel RPM", this.Motor.getVelocity() / TicksPerRev * 60);
+
 //        Globals.telemetry.addData("ballorder", BallOrder.GameOrder.toString());
 
 //        this.Motor.setPositionPIDFCoefficients(PositionV);

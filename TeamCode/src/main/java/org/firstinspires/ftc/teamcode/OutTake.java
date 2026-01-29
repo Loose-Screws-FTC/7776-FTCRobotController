@@ -187,8 +187,8 @@ public class OutTake {
 
     public void ServosUp() {
         AreServosUp = true;
-        LServ.setPosition(0.625);
-        RServ.setPosition(0.625);
+        LServ.setPosition(0.65);
+        RServ.setPosition(0.65);
     }
 
     public void ServosDown() {

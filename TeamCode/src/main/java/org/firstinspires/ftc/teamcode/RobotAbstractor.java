@@ -194,8 +194,8 @@ public class RobotAbstractor {
 
     public Action ShootOneBallAction() {
         double RPMStabilizeTime = 0.2;
-        double ServoUpTime = 0.5;
-        double ServoDownTime = 1;
+        double ServoUpTime = 0.3;
+        double ServoDownTime = 0.3;
         return new SequentialAction(
             new AwaitAction(DecoderWheelSys::IsAtTarget),
             new AwaitAction(OutTakeSys::IsAtVelocity),
