@@ -7,16 +7,16 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.qualcomm.robotcore.robot.Robot;
 
 @Config
 public class FindBallOrderAction implements Action {
-    public static double MaxWaitTime = 0.5;
+    double MaxWaitTime;
     double StartTime = Double.NaN;
     RobotAbstractor Robot;
 
-    public FindBallOrderAction(RobotAbstractor robot) {
+    public FindBallOrderAction(RobotAbstractor robot, double maxWaitTime) {
         this.Robot = robot;
+        this.MaxWaitTime = maxWaitTime;
     }
 
     public boolean run(@NonNull TelemetryPacket packet) {

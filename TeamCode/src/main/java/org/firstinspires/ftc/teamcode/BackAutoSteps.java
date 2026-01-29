@@ -64,7 +64,11 @@ public class BackAutoSteps {
         }
         
         builder = builder
-            .splineToLinearHeading(MapPose(new Pose2d(0, 8, Math.toRadians(0))), 0);
+            .splineToLinearHeading(MapPose(new Pose2d(0, 8, Math.toRadians(0))), 0)
+            .turn(MapPose(new Pose2d(0, 8, Math.toRadians(95))).heading.log())
+            .stopAndAdd(new FindBallOrderAction(Robot, 5))
+            .stopAndAdd(() -> Robot.RecordMotifOffset())
+            .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetMotifBallColor(0)));
         
         if (Fire3Balls) {
             builder = builder

@@ -101,7 +101,7 @@ public class FrontAutoSteps {
             .stopAndAdd(() -> OutTakeController.SetVelocity(LaunchRPM / 6000.0))
             .stopAndAdd(() -> OutTakeController.SetIsFiring(true))
             .splineToLinearHeading(MapPose(new Pose2d(10, 18, Math.toRadians(-45))), 0)
-            .stopAndAdd(new FindBallOrderAction(Robot))
+            .stopAndAdd(new FindBallOrderAction(Robot, 0.5))
             .stopAndAdd(() -> Robot.RecordMotifOffset())
             .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetMotifBallColor(0)))
 
