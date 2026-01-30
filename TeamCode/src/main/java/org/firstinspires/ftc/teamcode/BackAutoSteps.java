@@ -28,9 +28,9 @@ public class BackAutoSteps {
     TeamColor AllianceColor;
     boolean ShouldFlip;
 
-    public static double LaunchRPM = 1785;
+    public static double LaunchRPM = 1750;
 
-    public static double FireTime = 20;
+    public static double FireTime = 0;
 
     public static boolean Fire3Balls = true;
 
@@ -65,14 +65,14 @@ public class BackAutoSteps {
         
         builder = builder
             .splineToLinearHeading(MapPose(new Pose2d(0, 8, Math.toRadians(0))), 0)
-            .turn(MapPose(new Pose2d(0, 8, Math.toRadians(95))).heading.log())
+            .turn(MapAngle(Math.toRadians(-95)))
             .stopAndAdd(new FindBallOrderAction(Robot, 5))
             .stopAndAdd(() -> Robot.RecordMotifOffset())
             .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetMotifBallColor(0)));
         
         if (Fire3Balls) {
             builder = builder
-                .splineToLinearHeading(MapPose(new Pose2d(0, 8, Math.toRadians(70))), 0)
+                .turn(MapAngle(Math.toRadians(-19.5)))
                 .stopAndAdd(new AwaitAction(() -> Robot.Runtime.seconds() > FireTime))
                 .stopAndAdd(Robot.ShootAllBallsAction());
         }
@@ -102,8 +102,12 @@ public class BackAutoSteps {
         return new Pose2d(
             Pose.position.x,
             -Pose.position.y,
-            -Pose.heading.log()
+            FlipAngle(Pose.heading.log())
         );
+    }
+
+    public double FlipAngle(double angle) {
+        return -angle;
     }
 
     public Pose2d MapPose(Pose2d Pose) {
@@ -111,6 +115,14 @@ public class BackAutoSteps {
             return FlipPose(Pose);
         } else {
             return Pose;
+        }
+    }
+
+    public double MapAngle(double angle) {
+        if (ShouldFlip) {
+            return FlipAngle(angle);
+        } else {
+            return angle;
         }
     }
 }

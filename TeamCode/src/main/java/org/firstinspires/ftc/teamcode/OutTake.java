@@ -40,8 +40,6 @@ public class OutTake {
     public static final double NEW_I = 50;
     public static final double NEW_D = 100;
 
-    public static final double TILT_SERVO_DEFAULT_POS = 0.51;
-
     public void Init(DcMotorEx LeftMotor, DcMotorEx RightMotor, Servo LeftServo, Servo RightServo, Servo TiltServo) {
         LMotor = LeftMotor;
         RMotor = RightMotor;
@@ -55,7 +53,7 @@ public class OutTake {
         LMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         RMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        LMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        LMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         RMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         LServ = LeftServo;
