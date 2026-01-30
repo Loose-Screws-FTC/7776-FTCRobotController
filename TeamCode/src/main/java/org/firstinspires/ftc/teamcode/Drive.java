@@ -1,20 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -110,11 +102,7 @@ public class Drive {
             }
         }
 
-        // direction, relative to the robot, that is absolute forward
-        Vector2 absForward = Vector2.AtAngle(-Heading);
-
-        // the direction, relative to the field, that the robot is facing
-        Vector2 fieldDirection = Vector2.AtAngle(Heading);
+        Vector2 forward = Vector2.AtAngle(Heading);
 
         Vector2 inputLateral = new Vector2(inputX, inputY);
         inputLateral.Pow(3);
@@ -126,23 +114,23 @@ public class Drive {
             boolean ballOnLeft = !Double.isNaN(leftDistance);
             boolean ballOnRight = !Double.isNaN(rightDistance);
 
-            double rightPower = 0;
+            double leftPower = 0;
             if (ballOnLeft && !ballOnRight) {
-                rightPower = -StrafeSpeed;
+                leftPower = StrafeSpeed;
             } else if (ballOnRight && !ballOnLeft) {
-                rightPower = StrafeSpeed;
+                leftPower = -StrafeSpeed;
             }
 
-            lateral = new Vector2(rightPower, inputLateral.Dot(fieldDirection));
+            lateral = new Vector2(leftPower, inputLateral.Dot(forward));
         } else {
             lateral = inputLateral;
             lateral.Scale(-DriveSpeed);
-            lateral.ComplexMultiply(absForward);
+            lateral.ComplexMultiply(forward);
         }
 
         double turn = 0;
         if (Math.abs(inputTurn) > 0.01) {
-            turn = Math.pow(inputTurn * TurnSpeed, 3);
+            turn = Math.pow(inputTurn, 3) * TurnSpeed;
             TargetRot = Double.NaN;
         } else if (!Double.isNaN(TargetRot)) {
             double turnGoal = (Heading - TargetRot + Math.PI) % (Math.PI * 2) - Math.PI;
@@ -162,7 +150,7 @@ public class Drive {
 
     // remember, angle must be in radians
     public void SetRelativeAngleTarget(double angle) {
-        TargetRot = Heading + angle;
+        TargetRot = Heading - angle;
     }
 
     public void Stop() {

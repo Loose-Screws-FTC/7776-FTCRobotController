@@ -18,20 +18,24 @@ public class DecoderWheel {
     private int IntakeSlot = 1;
 
     private double AddedAngleToRevolveOneStep = 120;
-    private double TicksPerRev = 28 * 6.2;
+    private double TicksPerRev = 560;
     private double TargetAngle = 0;
     private double CurrAngle = 0;
 
-    public static double MaxMotorPower = 0.7;
-    public static double CloseMotorPower = 0.2;
-    public static double NoBallsPowerMultiplier = 0.65;
+//    public static double CloseMotorPower = 0.2;
+    public static double[] BallsPowerMultiplier = {
+        0.5,
+        0.65,
+        0.75,
+        1
+    };
     public static double AcceptableAngleDeviation = 5;
-    public static double CloseAngleDeviation = 30;
+//    public static double CloseAngleDeviation = 30;
 
-    public static double PMaxAngle = 30;
+    public static double PMaxAngle = 50;
     public static double PMinAngle = 5;
     public static double MinMotorPower = 0.2;
-    // public static double MaxMotorPower = 0.7;
+    public static double MaxMotorPower = 1;
 
     private boolean IsCurrentlyOpenToIntake = false;
 
@@ -47,7 +51,7 @@ public class DecoderWheel {
         this.Motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.Motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 //        this.Motor.setTargetPosition(0);
-//        this.Motor.setPower(MotorPower);
+//        this.Motor.setPower(MaxMotorPower);
 //        this.Motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 //        this.Motor.setTargetPosition(0);
 //        this.Motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -102,7 +106,7 @@ public class DecoderWheel {
         double baseMotorPower = interPDist * MaxMotorPower + (1 - interPDist) * MinMotorPower;
         // boolean isClose = angleDeviation < CloseAngleDeviation;
         // double baseMotorPower = isClose ? CloseMotorPower : MaxMotorPower;
-        if (!HasAnyRealBalls()) baseMotorPower *= NoBallsPowerMultiplier;
+        baseMotorPower *= BallsPowerMultiplier[GetBallCount()];
 
         TelemetryPacket packet = new TelemetryPacket();
         packet.put("curr angle", this.CurrAngle);
@@ -126,12 +130,12 @@ public class DecoderWheel {
 
         //telemetry.addData("Current angle", this.CurrAngle);
         //telemetry.addData("Motor", this.Motor.getCurrentPosition());
-//        this.Motor.setPositionPIDFCoefficients(RobotConfig.DecoderWheelPosP);
+//        this.Motor.setPositionPIDFCoefficients(PosP);
 //        this.Motor.setVelocityPIDFCoefficients(
-//            RobotConfig.DecoderWheelVelP,
-//            RobotConfig.DecoderWheelVelI,
-//            RobotConfig.DecoderWheelVelD,
-//            0 // F
+//            VelP,
+//            VelI,
+//            VelD,
+//            VelF
 //        );
 //
 //        telemetry.addData("target angle", this.TargetAngle);
@@ -167,11 +171,12 @@ public class DecoderWheel {
         Collections.rotate(BallsInWheel, -1);
     }
 
-    public boolean HasAnyRealBalls() {
+    public int GetBallCount() {
+        int count = 0;
         for (BallColor color : BallsInWheel) {
-            if (color.IsBall) return true;
+            if (color.IsBall) count++;
         }
-        return false;
+        return count;
     }
 
     public void SetIntakedColor(BallColor Color) {
@@ -255,13 +260,5 @@ public class DecoderWheel {
 
         this.IsCurrentlyOpenToIntake = false;
         this.TargetAngle -= AddedAngleToRevolveOneStep / 2;
-    }
-
-    public void SetPower(double Power) {
-        this.Motor.setPower(Power);
-    }
-
-    public void Stop() {
-        this.Motor.setPower(0);
     }
 }
