@@ -26,8 +26,8 @@ import java.util.List;
 
 @Config
 public class RobotAbstractor {
-    public static double BallColorTolerance = 0.0025;
-    public static double BallDistanceThreshold = 4.75;
+    public static double BallColorTolerance = 0.002;
+    public static double BallDistanceThreshold = 4.5;
     public static double RetractIntakeTime = 0;
     public static double RevolveTime = 0.1;
     public static double RevolveFinishTime = 0.3;
@@ -118,7 +118,7 @@ public class RobotAbstractor {
     }
 
     public void ShowClassifierBallCountInTelemetry() {
-        // these are rendered on the telemetry ouput of the driver station in Roboto
+        // these are rendered on the telemetry output of the driver station in Roboto
         String[] arts = {
             "     ⬜\n" +
             "⬜     ⬜\n" +

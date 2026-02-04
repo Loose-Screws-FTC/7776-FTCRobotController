@@ -1,14 +1,20 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Config
 @TeleOp(name="TeleOp1", group="Iterative Opmode")
@@ -176,17 +182,17 @@ public class TeleOp1 extends OpMode {
 
         this.Robot.Update(DeltaTime);
 
-        // TelemetryPacket packet = new TelemetryPacket();
+         TelemetryPacket packet = new TelemetryPacket();
 
-        // NormalizedRGBA colors = Robot.ColorSensor.getNormalizedColors();
-        // packet.put("red", colors.red);
-        // packet.put("green", colors.green);
-        // packet.put("blue", colors.blue);
-        // packet.put("distance", ((DistanceSensor)Robot.ColorSensor).getDistance(DistanceUnit.CM));
+         NormalizedRGBA colors = Robot.ColorSensor.getNormalizedColors();
+         packet.put("red", colors.red);
+         packet.put("green", colors.green);
+         packet.put("blue", colors.blue);
+         packet.put("distance", ((DistanceSensor)Robot.ColorSensor).getDistance(DistanceUnit.CM));
 
-        // packet.put("Left Distance", this.Robot.LeftDistanceSensor.getDistance(DistanceUnit.CM));
-        // packet.put("Right Distance", this.Robot.RightDistanceSensor.getDistance(DistanceUnit.CM));
-        // FtcDashboard.getInstance().sendTelemetryPacket(packet);
+         packet.put("Left Distance", this.Robot.LeftDistanceSensor.getDistance(DistanceUnit.CM));
+         packet.put("Right Distance", this.Robot.RightDistanceSensor.getDistance(DistanceUnit.CM));
+         FtcDashboard.getInstance().sendTelemetryPacket(packet);
 //        telemetry.addData("Ball Detected: ", BallDetected);
 
 //        telemetry.addData("TargetRPM", Math.round(this.TargetRPM));

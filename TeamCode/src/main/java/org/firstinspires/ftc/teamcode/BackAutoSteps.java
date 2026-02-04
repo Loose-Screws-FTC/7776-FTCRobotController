@@ -30,7 +30,7 @@ public class BackAutoSteps {
 
     public static double LaunchRPM = 1750;
 
-    public static double FireTime = 0;
+    public static double FireTime = 10;
 
     public static boolean Fire3Balls = true;
 
@@ -83,10 +83,8 @@ public class BackAutoSteps {
         Action steps = builder.build();
 
         return new ParallelAction(
-            new UpdateAction(DecoderWheelController::Update),
-            new UpdateAction(IntakeController::Update),
+            new UpdateAction(Robot::Update),
             new UpdateAction(Robot::AutoIntakeUpdate),
-            new UpdateAction(OutTakeController::Update),
             new UpdateAction(this::TelemetryUpdate),
             new SequentialAction(
                 steps

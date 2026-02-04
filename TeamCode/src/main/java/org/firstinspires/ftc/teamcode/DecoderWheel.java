@@ -73,6 +73,9 @@ public class DecoderWheel {
         Globals.telemetry.addData("ball2", this.BallsInWheel.get(1));
         Globals.telemetry.addData("ball3", this.BallsInWheel.get(2));
 
+        Globals.telemetry.addData("ball count", this.GetBallCount());
+        Globals.telemetry.addData("deltaTime", DeltaTime);
+
         Globals.telemetry.addData("decoder wheel RPM", this.Motor.getVelocity() / TicksPerRev * 60);
 
 //        Globals.telemetry.addData("ballorder", BallOrder.GameOrder.toString());
@@ -111,6 +114,7 @@ public class DecoderWheel {
         TelemetryPacket packet = new TelemetryPacket();
         packet.put("curr angle", this.CurrAngle);
         packet.put("target angle", this.TargetAngle);
+        packet.put("baseMotorPower", baseMotorPower * 100);
         packet.put("AcceptableAngleDeviation", AcceptableAngleDeviation);
 
         if (this.CurrAngle < this.TargetAngle - AcceptableAngleDeviation) {

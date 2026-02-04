@@ -9,7 +9,7 @@ import static java.lang.System.currentTimeMillis;
 import androidx.annotation.NonNull;
 
 public class UpdateAction implements Action {
-    double LastTime = currentTimeMillis();
+    double LastTime = currentTimeMillis() / 1000.0;
     DoubleConsumer Func;
 
     public UpdateAction(DoubleConsumer Func) {

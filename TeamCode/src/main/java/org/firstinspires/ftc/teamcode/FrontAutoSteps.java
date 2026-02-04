@@ -27,7 +27,7 @@ public class FrontAutoSteps {
     TeamColor AllianceColor;
     boolean ShouldFlip;
 
-    public static double LaunchRPM = 1625;
+    public static double LaunchRPM = 1520;
 
     public FrontAutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
         CurrentActionBuilder = ActionBuilder;
@@ -125,6 +125,16 @@ public class FrontAutoSteps {
             .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(45))), Math.toRadians(ShouldFlip ? -90 : 90))
             .stopAndAdd(Robot.ShootAllBallsAction())
 
+            // Intake second line of balls
+            .splineToLinearHeading(MapPose(new Pose2d(72.5, 5, Math.toRadians(-90))), 0)
+            .stopAndAdd(IntakeBallsStep.get())
+            .stopAndAdd(() -> Robot.RecordMotifOffset())
+            .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetMotifBallColor(0)))
+
+            // Move to goal, then shoot all the collected balls
+            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(45))), Math.toRadians(ShouldFlip ? -90 : 90))
+            .stopAndAdd(Robot.ShootAllBallsAction())
+
             // Return to start for now
             .strafeToLinearHeading(
                 MapPose(new Pose2d(10, 0, Math.toRadians(270))).position,
@@ -139,10 +149,8 @@ public class FrontAutoSteps {
             .build();
 
         return new ParallelAction(
-            new UpdateAction(DecoderWheelController::Update),
-            new UpdateAction(IntakeController::Update),
+            new UpdateAction(Robot::Update),
             new UpdateAction(Robot::AutoIntakeUpdate),
-            new UpdateAction(OutTakeController::Update),
             new UpdateAction(this::TelemetryUpdate),
             new SequentialAction(
                 steps

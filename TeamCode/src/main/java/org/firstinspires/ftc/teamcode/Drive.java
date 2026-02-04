@@ -121,7 +121,7 @@ public class Drive {
                 leftPower = -StrafeSpeed;
             }
 
-            lateral = new Vector2(leftPower, inputLateral.Dot(forward));
+            lateral = new Vector2(leftPower, inputLateral.GetMagnitude() * DriveSpeed);
         } else {
             lateral = inputLateral;
             lateral.Scale(-DriveSpeed);

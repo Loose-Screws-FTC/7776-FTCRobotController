@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -13,6 +14,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+@Config
 public class OutTake {
     private DcMotorEx LMotor;
     private DcMotorEx RMotor;
@@ -36,9 +38,12 @@ public class OutTake {
 
     private boolean AreServosUp = false;
 
-    public static final double NEW_P = 180;
-    public static final double NEW_I = 50;
-    public static final double NEW_D = 100;
+    public static double NEW_P = 180;
+    public static double NEW_I = 0;
+    public static double NEW_D = 100;
+    public static double NEW_F = 12;
+
+    public static double ComputedRPMMultiplier = 0.95;
 
     public void Init(DcMotorEx LeftMotor, DcMotorEx RightMotor, Servo LeftServo, Servo RightServo, Servo TiltServo) {
         LMotor = LeftMotor;
@@ -79,9 +84,8 @@ public class OutTake {
 
 //        PIDCoefficients pidOrig = LMotor.getPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        PIDCoefficients pidNew = new PIDCoefficients(NEW_P,NEW_I,NEW_D);
-        LMotor.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidNew);
-        RMotor.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidNew);
+        LMotor.setVelocityPIDFCoefficients(NEW_P, NEW_I, NEW_D, NEW_F);
+        RMotor.setVelocityPIDFCoefficients(NEW_P, NEW_I, NEW_D, NEW_F);
 
 
 
@@ -115,7 +119,7 @@ public class OutTake {
 //        packet.put("RightTicks", RightTicks);
         packet.put("LeftRPM", LeftRPM);
         packet.put("RightRPM", RightRPM);
-        packet.put("ArmsUp", AreServosUp ? 1.0 : 0.0);
+        packet.put("ArmsUp", AreServosUp ? TargetVelocity * this.ApproxMaxRPM: 0.0);
         FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
         // LastLRevs = LRevs;
@@ -123,10 +127,14 @@ public class OutTake {
     }
 
     // https://www.desmos.com/calculator/xx5wnlycwg
-    public static double GetRPMAt(double distance) {
+    private static double GetRawRPMAt(double distance) {
         if (distance < 53.5) return 5 * distance + 1332.5;
         if (distance < 68) return 1600;
         return (-205.9896 / (1 + Math.exp(0.158699 * distance - 17.30768))) + 1804.51045;
+    }
+
+    public static double GetRPMAt(double distance) {
+        return GetRawRPMAt(distance) * ComputedRPMMultiplier;
     }
 
     public void SetVelocity(double Velocity) {
@@ -150,7 +158,7 @@ public class OutTake {
     }
 
     public double GetCurrentVelocity() {
-        return (LMotor.getVelocity() / MaxTicksPerSecond + RMotor.getVelocity() / MaxTicksPerSecond) / 2;
+        return (LMotor.getVelocity() + RMotor.getVelocity()) / MaxTicksPerSecond / 2;
     }
 
     public boolean IsAtVelocity() {
