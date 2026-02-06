@@ -2,31 +2,19 @@ package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.AngularVelConstraint;
-import com.acmerobotics.roadrunner.InstantAction;
-import com.acmerobotics.roadrunner.MinVelConstraint;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
-import com.acmerobotics.roadrunner.TranslationalVelConstraint;
-import com.acmerobotics.roadrunner.VelConstraint;
-
-import java.util.Arrays;
-import java.util.function.Supplier;
 
 @Config
-public class BackAutoSteps {
+public class BackAutoSteps extends AutoSteps {
     TrajectoryActionBuilder CurrentActionBuilder;
-    MecanumDrive Drive;
-    RobotAbstractor Robot;
     Intake IntakeController;
     OutTake OutTakeController;
     DecoderWheel DecoderWheelController;
     TeamColor BaseColor = TeamColor.RED;
     TeamColor AllianceColor;
-    boolean ShouldFlip;
 
     public static double LaunchRPM = 1750;
 
@@ -35,6 +23,7 @@ public class BackAutoSteps {
     public static boolean Fire3Balls = true;
 
     public BackAutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
+        super(Drive, robot);
         CurrentActionBuilder = ActionBuilder;
         this.AllianceColor = AllianceColor;
         this.ShouldFlip = BaseColor != AllianceColor;
@@ -45,6 +34,7 @@ public class BackAutoSteps {
         this.DecoderWheelController = robot.DecoderWheelSys;
     }
 
+    @Override
     public void Init() {
         this.DecoderWheelController.SetCurrentColors(
             BallColor.GREEN,
@@ -53,6 +43,7 @@ public class BackAutoSteps {
         );
     }
 
+    @Override
     public Action BuildAndGetActionBuilder() {
         // https://www.desmos.com/calculator/xrp25mvpxb
         TrajectoryActionBuilder builder = CurrentActionBuilder;
@@ -92,35 +83,4 @@ public class BackAutoSteps {
         );
     }
 
-    void TelemetryUpdate(double deltaTime) {
-        Globals.telemetry.update();
-    }
-
-    public Pose2d FlipPose(Pose2d Pose) {
-        return new Pose2d(
-            Pose.position.x,
-            -Pose.position.y,
-            FlipAngle(Pose.heading.log())
-        );
-    }
-
-    public double FlipAngle(double angle) {
-        return -angle;
-    }
-
-    public Pose2d MapPose(Pose2d Pose) {
-        if (ShouldFlip) {
-            return FlipPose(Pose);
-        } else {
-            return Pose;
-        }
-    }
-
-    public double MapAngle(double angle) {
-        if (ShouldFlip) {
-            return FlipAngle(angle);
-        } else {
-            return angle;
-        }
-    }
 }

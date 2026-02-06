@@ -38,6 +38,7 @@ public class TeleOp1 extends OpMode {
         DcMotor BrMotor = hardwareMap.get(DcMotor.class, "br");
 
         this.Robot = new RobotAbstractor(hardwareMap);
+        this.Robot.ToStartPositions();
 
         IMU Imu = hardwareMap.get(IMU.class, "imu");
 
@@ -114,6 +115,10 @@ public class TeleOp1 extends OpMode {
             this.DriveSys.DriveSpeed = 1;
             this.DriveSys.TurnSpeed = 1;
         }
+
+        this.Robot.DecoderWheelSys.ManualAdjustAngle(
+            DeltaTime * gamepad2.right_stick_x * 45
+        );
 
         if (gamepad1.dpadRightWasPressed()) {
             this.Robot.DecoderWheelSys.RevolveRight();

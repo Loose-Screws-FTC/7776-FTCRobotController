@@ -133,7 +133,7 @@ public class Drive {
             turn = Math.pow(inputTurn, 3) * TurnSpeed;
             TargetRot = Double.NaN;
         } else if (!Double.isNaN(TargetRot)) {
-            double turnGoal = (Heading - TargetRot + Math.PI) % (Math.PI * 2) - Math.PI;
+            double turnGoal = AngleTo2PI(Heading - TargetRot + Math.PI) - Math.PI;
             turn = turnGoal * MaintainRotP;
         }
 
@@ -146,6 +146,12 @@ public class Drive {
         this.FrMotor.setPower(FrPower);
         this.BlMotor.setPower(BlPower);
         this.BrMotor.setPower(BrPower);
+    }
+
+    double AngleTo2PI(double a) {
+        a %= Math.PI * 2;
+        if (a < 0) a += Math.PI * 2;
+        return a;
     }
 
     // remember, angle must be in radians

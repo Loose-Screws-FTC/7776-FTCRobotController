@@ -27,7 +27,8 @@ import java.util.List;
 @Config
 public class RobotAbstractor {
     public static double BallColorTolerance = 0.002;
-    public static double BallDistanceThreshold = 4.5;
+    public static double BallDistanceThreshold = 4.65;
+    public static int FactorsRequired = 1;
     public static double RetractIntakeTime = 0;
     public static double RevolveTime = 0.1;
     public static double RevolveFinishTime = 0.3;
@@ -52,7 +53,6 @@ public class RobotAbstractor {
 
     public boolean BallDetected = false;
     public boolean ShouldIntake = false;
-    public boolean CurrentlyIntaking = false;
 
     public boolean IntakeShouldOuttake = false;
 
@@ -95,6 +95,11 @@ public class RobotAbstractor {
         this.Limelight.start();
 
         Runtime = new ElapsedTime();
+    }
+
+    public void ToStartPositions() {
+        this.OutTakeSys.ServosDown();
+        this.IntakeSys.ServosToNeutral();
     }
 
     public void AddAction(Action action) {
@@ -214,7 +219,8 @@ public class RobotAbstractor {
                     || colors.green > BallColorTolerance
                     || colors.blue > BallColorTolerance;
             boolean distanceMet = ((DistanceSensor)ColorSensor).getDistance(DistanceUnit.CM) < BallDistanceThreshold;
-            if (colorsMet && distanceMet) {
+            int factorsPresent = (colorsMet ? 1 : 0) + (distanceMet ? 1 : 0);
+            if (factorsPresent >= FactorsRequired) {
                 DecoderWheelSys.SetIntakedColor(DecoderWheel.DetermineBallColor(colors));
                 this.BallDetected = true;
                 this.BallDetectTime = Runtime.seconds();
@@ -223,7 +229,7 @@ public class RobotAbstractor {
             }
         }
 
-        CurrentlyIntaking = ShouldIntake;
+        boolean CurrentlyIntaking = ShouldIntake;
 
         if (Runtime.seconds() > BallDetectTime + RevolveFinishTime) {
             this.BallDetectTime = Double.POSITIVE_INFINITY;
@@ -249,10 +255,11 @@ public class RobotAbstractor {
 
         double IntakePower = CurrentlyIntaking || !DecoderWheelSys.IsAtTarget()
                 ? 1.0 : 0.0;
-        if (!IntakeShouldOuttake) {
-            IntakeSys.SetPower(IntakePower);
-        } else {
+        if (IntakeShouldOuttake) {
+            DecoderWheelSys.ClearIntakedSlot();
             IntakeSys.SetPower(-1);
+        } else {
+            IntakeSys.SetPower(IntakePower);
         }
     }
 

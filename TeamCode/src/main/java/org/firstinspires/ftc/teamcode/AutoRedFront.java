@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -43,6 +44,6 @@ public class AutoRedFront extends LinearOpMode {
 
         // Start the auto
         waitForStart();
-        Actions.runBlocking(autoActionSteps);
+        StepsBuilder.FastRunAction(autoActionSteps);
     }
 }

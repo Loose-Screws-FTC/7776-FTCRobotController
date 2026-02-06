@@ -187,6 +187,10 @@ public class DecoderWheel {
         BallsInWheel.set(IntakeSlot, Color);
     }
 
+    public void ClearIntakedSlot() {
+        BallsInWheel.set(IntakeSlot, BallColor.NONE);
+    }
+
     public BallColor ClearOuttakeSlot() {
         return BallsInWheel.set(0, BallColor.NONE);
     }
@@ -237,6 +241,10 @@ public class DecoderWheel {
                 this.BallsInWheel.set(i, BallColor.DUMMY);
             }
         }
+    }
+
+    public void ManualAdjustAngle(double offset) {
+        TargetAngle += offset;
     }
 
     // public void OpenToIntake() {

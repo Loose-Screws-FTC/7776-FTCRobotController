@@ -16,25 +16,21 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 @Config
-public class FrontAutoSteps {
+public class FrontAutoSteps extends AutoSteps {
     TrajectoryActionBuilder CurrentActionBuilder;
-    MecanumDrive Drive;
-    RobotAbstractor Robot;
     Intake IntakeController;
     OutTake OutTakeController;
     DecoderWheel DecoderWheelController;
     TeamColor BaseColor = TeamColor.BLUE;
     TeamColor AllianceColor;
-    boolean ShouldFlip;
 
     public static double LaunchRPM = 1520;
 
     public FrontAutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
+        super(Drive, robot);
         CurrentActionBuilder = ActionBuilder;
         this.AllianceColor = AllianceColor;
         this.ShouldFlip = BaseColor != AllianceColor;
-        this.Drive = Drive;
-        this.Robot = robot;
         this.IntakeController = robot.IntakeSys;
         this.OutTakeController = robot.OutTakeSys;
         this.DecoderWheelController = robot.DecoderWheelSys;
@@ -100,12 +96,14 @@ public class FrontAutoSteps {
         Action steps = CurrentActionBuilder
             .stopAndAdd(() -> OutTakeController.SetVelocity(LaunchRPM / 6000.0))
             .stopAndAdd(() -> OutTakeController.SetIsFiring(true))
-            .splineToLinearHeading(MapPose(new Pose2d(10, 18, Math.toRadians(-45))), 0)
+
+//            .splineToLinearHeading(MapPose(new Pose2d(10, 18, Math.toRadians(-45))), 0)
+            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(-20))), 0)
             .stopAndAdd(new FindBallOrderAction(Robot, 0.5))
             .stopAndAdd(() -> Robot.RecordMotifOffset())
             .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetMotifBallColor(0)))
 
-            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(45))), 0)
+            .turn(MapAngle(Math.toRadians(70)))
             .stopAndAdd(Robot.ShootAllBallsAction())
 
             // Intake first line of balls
@@ -122,7 +120,7 @@ public class FrontAutoSteps {
 //            .stopAndAdd(IntakeBallsStep4.get())
 
             // Move to goal, then shoot all the collected balls
-            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(45))), Math.toRadians(ShouldFlip ? -90 : 90))
+            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(50))), Math.toRadians(ShouldFlip ? -90 : 90))
             .stopAndAdd(Robot.ShootAllBallsAction())
 
             // Intake second line of balls
@@ -132,7 +130,7 @@ public class FrontAutoSteps {
             .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetMotifBallColor(0)))
 
             // Move to goal, then shoot all the collected balls
-            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(45))), Math.toRadians(ShouldFlip ? -90 : 90))
+            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(50))), Math.toRadians(ShouldFlip ? -90 : 90))
             .stopAndAdd(Robot.ShootAllBallsAction())
 
             // Return to start for now
@@ -156,25 +154,5 @@ public class FrontAutoSteps {
                 steps
             )
         );
-    }
-
-    void TelemetryUpdate(double deltaTime) {
-        Globals.telemetry.update();
-    }
-
-    public Pose2d FlipPose(Pose2d Pose) {
-        return new Pose2d(
-            Pose.position.x,
-            -Pose.position.y,
-            -Pose.heading.log()
-        );
-    }
-
-    public Pose2d MapPose(Pose2d Pose) {
-        if (ShouldFlip) {
-            return FlipPose(Pose);
-        } else {
-            return Pose;
-        }
     }
 }

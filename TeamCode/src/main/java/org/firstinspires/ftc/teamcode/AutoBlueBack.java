@@ -62,6 +62,6 @@ public class AutoBlueBack extends LinearOpMode {
 
         // Start the auto
         waitForStart();
-        Actions.runBlocking(autoActionSteps);
+        StepsBuilder.FastRunAction(autoActionSteps);
     }
 }
