@@ -53,6 +53,7 @@ public class RobotAbstractor {
 
     public boolean BallDetected = false;
     public boolean ShouldIntake = false;
+    public boolean AllowAutoRevolve = true;
 
     public boolean IntakeShouldOuttake = false;
 
@@ -237,7 +238,9 @@ public class RobotAbstractor {
         if (Runtime.seconds() > BallDetectTime + RevolveTime) {
             if (!RotatedAfterIntaking) {
                 RotatedAfterIntaking = true;
-                DecoderWheelSys.RevolveRight();
+                if (AllowAutoRevolve) {
+                    DecoderWheelSys.RevolveRight();
+                }
             }
             CurrentlyIntaking = false;
         } else if (Runtime.seconds() > BallDetectTime + RetractIntakeTime) {

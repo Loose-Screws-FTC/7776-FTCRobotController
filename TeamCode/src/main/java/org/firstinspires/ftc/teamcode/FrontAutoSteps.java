@@ -49,9 +49,11 @@ public class FrontAutoSteps extends AutoSteps {
         // Assumes all ball slots are empty
         double IntakeBallStepsTimeToWait = 0.1;
         Supplier<SequentialAction> IntakeBallsStep = () -> new SequentialAction(
+                new InstantAction(() -> Robot.AllowAutoRevolve = true),
                 new InstantAction(() -> Robot.ShouldIntake = true),
                 new CollectBallAction(Robot, Drive, 22),
                 new InstantAction(() -> Robot.ShouldIntake = false),
+                new InstantAction(() -> Robot.AllowAutoRevolve = false),
                 new WaitOneFrameAction(),
                 new InstantAction(() -> Robot.RecordMotifOffset()),
                 new InstantAction(() -> Robot.DecoderWheelSys.RevolveToColor(Robot.GetMotifBallColor(0)))
