@@ -14,7 +14,7 @@ public class RunWhileAction implements Action {
     BooleanSupplier ShouldContinue;
     Action Action;
 
-    public FindBallOrderAction(BooleanSupplier shouldContinue, Action Action) {
+    public RunWhileAction(BooleanSupplier shouldContinue, Action Action) {
         this.ShouldContinue = shouldContinue;
         this.Action = Action;
     }

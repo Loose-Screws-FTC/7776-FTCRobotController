@@ -9,7 +9,7 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 @Config
 public abstract class AutoSteps {
     public static boolean WithoutActionTelemetry = true;
-    public static double TerminateTime = 29.5;
+    public static double TerminateTime = 30;
     boolean ShouldFlip;
     MecanumDrive Drive;
     RobotAbstractor Robot;

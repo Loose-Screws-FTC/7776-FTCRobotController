@@ -13,6 +13,7 @@ import java.util.List;
 
 @Config
 public class DecoderWheel {
+    public static double BlueOffset = 0.0006;
     private DcMotorEx Motor;
 
     private final int IntakeSlot = 1;
@@ -206,7 +207,7 @@ public class DecoderWheel {
     }
 
     public static BallColor DetermineBallColor(NormalizedRGBA colors) {
-        if (colors.green > colors.blue) {
+        if (colors.green > colors.blue + BlueOffset) {
             return BallColor.GREEN;
         } else {
             return BallColor.PURPLE;

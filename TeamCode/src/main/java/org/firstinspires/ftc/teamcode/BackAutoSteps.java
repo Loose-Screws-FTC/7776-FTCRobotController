@@ -18,7 +18,8 @@ public class BackAutoSteps extends AutoSteps {
 
     public static double LaunchRPM = 1725;
 
-    public static double FireTime = 10;
+    // DWAI wants us to fire "in the last 10 seconds"
+    public static double FireTime = 23;
 
     public static boolean Fire3Balls = true;
 

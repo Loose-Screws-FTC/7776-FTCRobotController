@@ -24,8 +24,8 @@ public class FrontAutoSteps extends AutoSteps {
     TeamColor BaseColor = TeamColor.BLUE;
     TeamColor AllianceColor;
 
-    public static double LaunchRPM = 1490;
-    public static double AngleShift = -1;
+    public static double LaunchRPM = 1475;
+    public static double AngleShift = -2.5;
 
     public FrontAutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
         super(Drive, robot);
@@ -104,7 +104,7 @@ public class FrontAutoSteps extends AutoSteps {
             .stopAndAdd(() -> OutTakeController.SetIsFiring(true))
 
 //            .splineToLinearHeading(MapPose(new Pose2d(10, 18, Math.toRadians(-45))), 0)
-            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(-20))), 0)
+            .splineToLinearHeading(MapPose(new Pose2d(52, 20, Math.toRadians(-20))), 0)
             .stopAndAdd(new FindBallOrderAction(Robot, 0.5))
             .stopAndAdd(() -> Robot.RecordMotifOffset())
             .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetMotifBallColor(0)))
@@ -124,7 +124,7 @@ public class FrontAutoSteps extends AutoSteps {
 //            .stopAndAdd(IntakeBallsStep4.get())
 
             // Move to goal, then shoot all the collected balls
-            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(50 + AngleShift))), Math.toRadians(ShouldFlip ? -90 : 90))
+            .splineToLinearHeading(MapPose(new Pose2d(52, 20, Math.toRadians(50 + AngleShift))), Math.toRadians(ShouldFlip ? -90 : 90))
             .stopAndAdd(Robot.ShootAllBallsAction())
 
             // Intake second line of balls
@@ -132,14 +132,17 @@ public class FrontAutoSteps extends AutoSteps {
             .stopAndAdd(IntakeBallsStep.get())
 
             // Move to goal, then shoot all the collected balls
-            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(50 + AngleShift))), Math.toRadians(ShouldFlip ? -90 : 90))
+            .splineToLinearHeading(MapPose(new Pose2d(52, 20, Math.toRadians(50 + AngleShift))), Math.toRadians(ShouldFlip ? -90 : 90))
             .stopAndAdd(new RunWhileAction(
-                () -> Robot.Runtime.second() < 28.5,
+                () -> Robot.Runtime.seconds() < 28.5,
                 Robot.ShootAllBallsAction()
             ))
 
             // Move off the launch lines
-            .lineToLinearHeading(MapPose(new Pose2d(52, 0, Math.toRadians(270))))
+            .strafeToLinearHeading(
+                MapPose(new Pose2d(52, 2, Math.toRadians(270))).position,
+                MapAngle(Math.toRadians(270))
+            )
 
             // Turn to the right direction
 //            .turn(MapAngle(Math.toRadians(-140 - AngleShift)))
