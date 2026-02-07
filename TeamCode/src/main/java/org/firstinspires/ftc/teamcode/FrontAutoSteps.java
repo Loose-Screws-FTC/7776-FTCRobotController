@@ -50,7 +50,7 @@ public class FrontAutoSteps extends AutoSteps {
         double IntakeBallStepsTimeToWait = 0.1;
         Supplier<SequentialAction> IntakeBallsStep = () -> new SequentialAction(
                 new InstantAction(() -> Robot.ShouldIntake = true),
-                new CollectBallAction(Robot, Drive, 23),
+                new CollectBallAction(Robot, Drive, 22),
                 new InstantAction(() -> Robot.ShouldIntake = false),
                 new WaitOneFrameAction(),
                 new InstantAction(() -> Robot.RecordMotifOffset()),
@@ -111,7 +111,7 @@ public class FrontAutoSteps extends AutoSteps {
             .stopAndAdd(Robot.ShootAllBallsAction())
 
             // Intake first line of balls
-            .splineToLinearHeading(MapPose(new Pose2d(48.5, 2, Math.toRadians(-90))), 0)
+            .splineToLinearHeading(MapPose(new Pose2d(48.5, 1, Math.toRadians(-90))), 0)
             .stopAndAdd(IntakeBallsStep.get())
 //            .stopAndAdd(IntakeBallsStep1.get())
 //            .strafeTo(MapPose(new Pose2d(48.5, -5, Math.toRadians(-90))).position, SlowVel)
@@ -126,18 +126,18 @@ public class FrontAutoSteps extends AutoSteps {
             .stopAndAdd(Robot.ShootAllBallsAction())
 
             // Intake second line of balls
-            .splineToLinearHeading(MapPose(new Pose2d(72.5, 2, Math.toRadians(-90))), 0)
+            .splineToLinearHeading(MapPose(new Pose2d(72.5, 1, Math.toRadians(-90))), 0)
             .stopAndAdd(IntakeBallsStep.get())
 
             // Move to goal, then shoot all the collected balls
             .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(50 + AngleShift))), Math.toRadians(ShouldFlip ? -90 : 90))
-            .stopAndAdd(Robot.ShootAllBallsAction())
+            .stopAndAdd(new RunWhileAction(
+                () -> Robot.Runtime.second() < 28.5,
+                Robot.ShootAllBallsAction()
+            ))
 
-            // Move off a launch line
-            .splineToLinearHeading(
-                MapPose(new Pose2d(52, 0, Math.toRadians(270))),
-                MapAngle(Math.toRadians(90))
-            )
+            // Move off the launch lines
+            .lineToLinearHeading(MapPose(new Pose2d(52, 0, Math.toRadians(270))))
 
             // Turn to the right direction
 //            .turn(MapAngle(Math.toRadians(-140 - AngleShift)))
