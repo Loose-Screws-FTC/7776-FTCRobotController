@@ -15,12 +15,12 @@ import java.util.List;
 public class DecoderWheel {
     private DcMotorEx Motor;
 
-    private int IntakeSlot = 1;
+    private final int IntakeSlot = 1;
 
-    private double AddedAngleToRevolveOneStep = 120;
-    private double TicksPerRev = 560;
-    private double TargetAngle = 0;
-    private double CurrAngle = 0;
+    private final double AddedAngleToRevolveOneStep = 120;
+    private final double TicksPerRev = 560;
+    private static double TargetAngle = 0;
+    private static double CurrAngle = 0;
 
 //    public static double CloseMotorPower = 0.2;
     public static double[] BallsPowerMultiplier = {
@@ -44,11 +44,15 @@ public class DecoderWheel {
     // Index 0 should always be the one in front of the outtake wheels.
     private List<BallColor> BallsInWheel = new ArrayList<>();
 
-    public void Init(DcMotor WheelMotor) {
+    public void Init(DcMotor WheelMotor, boolean shouldZero) {
         this.Motor = (DcMotorEx)WheelMotor;
 
         this.Motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        this.Motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        if (shouldZero) {
+            this.Motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            TargetAngle = 0;
+            CurrAngle = 0;
+        }
         this.Motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 //        this.Motor.setTargetPosition(0);
 //        this.Motor.setPower(MaxMotorPower);

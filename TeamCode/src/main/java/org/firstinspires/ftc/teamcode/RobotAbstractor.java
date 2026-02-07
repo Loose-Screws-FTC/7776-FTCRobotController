@@ -26,8 +26,8 @@ import java.util.List;
 
 @Config
 public class RobotAbstractor {
-    public static double BallColorTolerance = 0.002;
-    public static double BallDistanceThreshold = 4.65;
+    public static double BallColorTolerance = 0.006;
+    public static double BallDistanceThreshold = 15;
     public static int FactorsRequired = 1;
     public static double RetractIntakeTime = 0;
     public static double RevolveTime = 0.1;
@@ -61,7 +61,7 @@ public class RobotAbstractor {
 
     public static final int CLASSIFIER_CAP = 9;
 
-    public RobotAbstractor(HardwareMap hardwareMap) {
+    public RobotAbstractor(HardwareMap hardwareMap, boolean shouldZero) {
         DcMotorEx OutLeft = (DcMotorEx)hardwareMap.get(DcMotor.class, "outl");
         DcMotorEx OutRight = (DcMotorEx)hardwareMap.get(DcMotor.class, "outr");
 
@@ -88,7 +88,7 @@ public class RobotAbstractor {
         DcMotor DecoderWheelMotor = hardwareMap.get(DcMotor.class, "ringdrive");
 
         this.DecoderWheelSys = new DecoderWheel();
-        this.DecoderWheelSys.Init(DecoderWheelMotor);
+        this.DecoderWheelSys.Init(DecoderWheelMotor, shouldZero);
 
         this.Limelight = hardwareMap.get(Limelight3A.class, "limelight");
         this.Limelight.setPollRateHz(100);

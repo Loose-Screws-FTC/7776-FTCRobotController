@@ -23,7 +23,7 @@ public class AutoRedFront extends LinearOpMode {
             return;
         }
 
-        RobotAbstractor robot = new RobotAbstractor(hardwareMap);
+        RobotAbstractor robot = new RobotAbstractor(hardwareMap, true);
         Intake intakeController = robot.IntakeSys;
         DecoderWheel decoderWheelController = robot.DecoderWheelSys;
         OutTake outTakeController = robot.OutTakeSys;

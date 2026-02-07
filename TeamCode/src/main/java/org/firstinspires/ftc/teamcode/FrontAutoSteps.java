@@ -24,7 +24,8 @@ public class FrontAutoSteps extends AutoSteps {
     TeamColor BaseColor = TeamColor.BLUE;
     TeamColor AllianceColor;
 
-    public static double LaunchRPM = 1520;
+    public static double LaunchRPM = 1490;
+    public static double AngleShift = -1;
 
     public FrontAutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
         super(Drive, robot);
@@ -49,8 +50,11 @@ public class FrontAutoSteps extends AutoSteps {
         double IntakeBallStepsTimeToWait = 0.1;
         Supplier<SequentialAction> IntakeBallsStep = () -> new SequentialAction(
                 new InstantAction(() -> Robot.ShouldIntake = true),
-                new CollectBallAction(Drive, 26),
-                new InstantAction(() -> Robot.ShouldIntake = false)
+                new CollectBallAction(Robot, Drive, 23),
+                new InstantAction(() -> Robot.ShouldIntake = false),
+                new WaitOneFrameAction(),
+                new InstantAction(() -> Robot.RecordMotifOffset()),
+                new InstantAction(() -> Robot.DecoderWheelSys.RevolveToColor(Robot.GetMotifBallColor(0)))
         );
 //        Supplier<SequentialAction> IntakeBallsStep1 = () -> new SequentialAction(
 //                new InstantAction(() -> IntakeController.SetPower(1)),
@@ -103,14 +107,12 @@ public class FrontAutoSteps extends AutoSteps {
             .stopAndAdd(() -> Robot.RecordMotifOffset())
             .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetMotifBallColor(0)))
 
-            .turn(MapAngle(Math.toRadians(70)))
+            .turn(MapAngle(Math.toRadians(70 + AngleShift)))
             .stopAndAdd(Robot.ShootAllBallsAction())
 
             // Intake first line of balls
-            .splineToLinearHeading(MapPose(new Pose2d(48.5, 5, Math.toRadians(-90))), 0)
+            .splineToLinearHeading(MapPose(new Pose2d(48.5, 2, Math.toRadians(-90))), 0)
             .stopAndAdd(IntakeBallsStep.get())
-            .stopAndAdd(() -> Robot.RecordMotifOffset())
-            .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetMotifBallColor(0)))
 //            .stopAndAdd(IntakeBallsStep1.get())
 //            .strafeTo(MapPose(new Pose2d(48.5, -5, Math.toRadians(-90))).position, SlowVel)
 //            .stopAndAdd(IntakeBallsStep2.get())
@@ -120,29 +122,36 @@ public class FrontAutoSteps extends AutoSteps {
 //            .stopAndAdd(IntakeBallsStep4.get())
 
             // Move to goal, then shoot all the collected balls
-            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(50))), Math.toRadians(ShouldFlip ? -90 : 90))
+            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(50 + AngleShift))), Math.toRadians(ShouldFlip ? -90 : 90))
             .stopAndAdd(Robot.ShootAllBallsAction())
 
             // Intake second line of balls
-            .splineToLinearHeading(MapPose(new Pose2d(72.5, 5, Math.toRadians(-90))), 0)
+            .splineToLinearHeading(MapPose(new Pose2d(72.5, 2, Math.toRadians(-90))), 0)
             .stopAndAdd(IntakeBallsStep.get())
-            .stopAndAdd(() -> Robot.RecordMotifOffset())
-            .stopAndAdd(() -> DecoderWheelController.RevolveToColor(Robot.GetMotifBallColor(0)))
 
             // Move to goal, then shoot all the collected balls
-            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(50))), Math.toRadians(ShouldFlip ? -90 : 90))
+            .splineToLinearHeading(MapPose(new Pose2d(52, 24, Math.toRadians(50 + AngleShift))), Math.toRadians(ShouldFlip ? -90 : 90))
             .stopAndAdd(Robot.ShootAllBallsAction())
 
-            // Return to start for now
-            .strafeToLinearHeading(
-                MapPose(new Pose2d(10, 0, Math.toRadians(270))).position,
-                MapPose(new Pose2d(10, 0, Math.toRadians(270))).heading.log()
+            // Move off a launch line
+            .splineToLinearHeading(
+                MapPose(new Pose2d(52, 0, Math.toRadians(270))),
+                MapAngle(Math.toRadians(90))
             )
-            .strafeTo(MapPose(new Pose2d(0, 0, Math.toRadians(270))).position)
+
+            // Turn to the right direction
+//            .turn(MapAngle(Math.toRadians(-140 - AngleShift)))
+
+            // Return to start for now
+//            .strafeToLinearHeading(
+//                MapPose(new Pose2d(10, 0, Math.toRadians(270))).position,
+//                MapPose(new Pose2d(10, 0, Math.toRadians(270))).heading.log()
+//            )
+//            .strafeTo(MapPose(new Pose2d(0, 0, Math.toRadians(270))).position)
 
             // Stop
-            .stopAndAdd(new InstantAction(() -> this.OutTakeController.Stop()))
-            .stopAndAdd(new InstantAction(() -> this.IntakeController.Stop()))
+//            .stopAndAdd(new InstantAction(() -> this.OutTakeController.Stop()))
+//            .stopAndAdd(new InstantAction(() -> this.IntakeController.Stop()))
 
             .build();
 

@@ -37,7 +37,7 @@ public class TeleOp1 extends OpMode {
         DcMotor BlMotor = hardwareMap.get(DcMotor.class, "bl");
         DcMotor BrMotor = hardwareMap.get(DcMotor.class, "br");
 
-        this.Robot = new RobotAbstractor(hardwareMap);
+        this.Robot = new RobotAbstractor(hardwareMap, false);
         this.Robot.ToStartPositions();
 
         IMU Imu = hardwareMap.get(IMU.class, "imu");

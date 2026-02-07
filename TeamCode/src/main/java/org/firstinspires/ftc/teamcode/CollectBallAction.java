@@ -5,11 +5,13 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.*;
+import com.qualcomm.robotcore.robot.Robot;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Config
 public class CollectBallAction implements Action {
+    private final RobotAbstractor Robot;
     private final MecanumDrive Drive;
     public static double ForwardPower = 0.19;
     public static double SideSpeed = 0.3;
@@ -18,7 +20,8 @@ public class CollectBallAction implements Action {
     private Vector2d InitialPos = null;
     private double StartTime = Double.NaN;
 
-    public CollectBallAction(MecanumDrive drive, double forwardDistance) {
+    public CollectBallAction(RobotAbstractor robot, MecanumDrive drive, double forwardDistance) {
+        this.Robot = robot;
         this.Drive = drive;
         this.TargetDistance = forwardDistance;
     }
@@ -55,7 +58,8 @@ public class CollectBallAction implements Action {
             Vector2d DeltaPos = Pos.minus(InitialPos);
             Globals.telemetry.addData("Dist", DeltaPos.norm());
             if (DeltaPos.sqrNorm() < TargetDistance * TargetDistance
-                && (currentTime - StartTime) < MaxRuntime) {
+                && (currentTime - StartTime) < MaxRuntime
+                && this.Robot.DecoderWheelSys.GetBallCount() < 3) {
                 return true;
             } else {
                 this.Drive.leftFront.setPower(0);
