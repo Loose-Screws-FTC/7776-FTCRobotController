@@ -16,7 +16,7 @@ public class BackAutoSteps extends AutoSteps {
     TeamColor BaseColor = TeamColor.RED;
     TeamColor AllianceColor;
 
-    public static double LaunchRPM = 1725;
+    public static double LaunchRPM = 1700;
 
     // DWAI wants us to fire "in the last 10 seconds"
     public static double FireTime = 23;
