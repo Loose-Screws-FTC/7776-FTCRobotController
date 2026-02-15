@@ -15,6 +15,9 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+
+import java.util.List;
 
 @Config
 @TeleOp(name="TeleOp1", group="Iterative Opmode")
@@ -136,7 +139,7 @@ public class TeleOp1 extends OpMode {
             this.Robot.DecoderWheelSys.RevolveToColor(BallColor.GREEN);
         }
 
-        // Z-targeting: works like in Zelda (:
+        // Z-targeting: works like in Zelda :)
         LLResult llResult = this.Robot.Limelight.getLatestResult();
         if (llResult != null && llResult.isValid()) {
             for (LLResultTypes.FiducialResult fidResult : llResult.getFiducialResults()) {
@@ -148,9 +151,15 @@ public class TeleOp1 extends OpMode {
                 double tx = fidResult.getTargetXDegrees() + CameraDegreesXOffset;
                 // Target up/down distance from center of fov (degrees)
                 double ty = fidResult.getTargetYDegrees();
+                // Target yaw in global space (I think)
+                double yaw = fidResult.getTargetPoseCameraSpace().getOrientation().getYaw();
+
+                double negOffset = Math.min(0, yaw / 28 * 8);
+                double posOffset = -Math.max(0, yaw / 12 * 11);
+                double constOffset = 2;
 
                 if (gamepad1.y) {
-                    DriveSys.SetRelativeAngleTarget(Math.toRadians(tx));
+                    DriveSys.SetRelativeAngleTarget(Math.toRadians(tx - negOffset + posOffset + constOffset));
                 }
 
                 telemetry.addData("Target X", tx);
@@ -162,7 +171,7 @@ public class TeleOp1 extends OpMode {
 
                 double limelightLensHeight = 12.6; // Lens height from the floor in inches
 
-                double targetHeight = 28.0; // 28 is correct now :3
+                double targetHeight = 28.0; // 28 is correct now :3 :3
 
                 double angleToGoal =  Math.toRadians(limelightMountAngle + ty);
 
