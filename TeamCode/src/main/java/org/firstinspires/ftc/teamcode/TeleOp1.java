@@ -154,8 +154,8 @@ public class TeleOp1 extends OpMode {
                 // Target yaw in global space (I think)
                 double yaw = fidResult.getTargetPoseCameraSpace().getOrientation().getYaw();
 
-                double negOffset = Math.min(0, yaw / 28 * 8);
-                double posOffset = -Math.max(0, yaw / 12 * 11);
+                double negOffset = Math.min(0, yaw / 31 * (5f / 6f) / 1.2);
+                double posOffset = -Math.max(0, yaw / 9 * 3);
                 double constOffset = 2;
 
                 if (gamepad1.y) {
@@ -164,6 +164,7 @@ public class TeleOp1 extends OpMode {
 
                 telemetry.addData("Target X", tx);
                 telemetry.addData("Target Y", ty);
+                telemetry.addData("yaw", yaw);
 
                 // Finds the distance between the camera and the currently targeted apriltag. Method is explained in detail at https://docs.limelightvision.io/docs/docs-limelight/tutorials/tutorial-estimating-distance
 

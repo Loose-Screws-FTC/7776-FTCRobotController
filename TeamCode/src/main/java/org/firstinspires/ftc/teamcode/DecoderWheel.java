@@ -35,7 +35,7 @@ public class DecoderWheel {
 
     public static double PMaxAngle = 50;
     public static double PMinAngle = 5;
-    public static double MinMotorPower = 0.2;
+    public static double MinMotorPower = 0.1;
     public static double MaxMotorPower = 1;
 
     private boolean IsCurrentlyOpenToIntake = false;

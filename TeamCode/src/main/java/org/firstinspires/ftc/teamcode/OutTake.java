@@ -130,7 +130,7 @@ public class OutTake {
     private static double GetRawRPMAt(double distance) {
         if (distance < 53.5) return 5 * distance + 1332.5;
         if (distance < 68) return 1600;
-        return (-205.9896 / (1 + Math.exp(0.158699 * distance - 17.30768))) + 1804.51045;
+        return (-182.52615 / (1 + Math.exp(0.181724 * distance - 19.42445))) + 1781.5753;
     }
 
     public static double GetRPMAt(double distance) {
