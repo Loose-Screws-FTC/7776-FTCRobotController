@@ -33,7 +33,9 @@ public class Drive {
 
     public static double StrafeSpeed = 0.3;
 
-    public static double MaintainRotP = 1;
+    public static double DefaultMaintainRotP = 1.5;
+    public static double SpecificMaintainRotP = 3;
+    public double MaintainRotP = DefaultMaintainRotP;
     public static double RotStoreSpeed = 0.05;
 
     public boolean ShouldAlignToBall = false;
@@ -99,6 +101,7 @@ public class Drive {
             double yRotVel = this.Imu.getRobotAngularVelocity(AngleUnit.RADIANS).yRotationRate;
             if (Math.abs(yRotVel) < RotStoreSpeed) {
                 TargetRot = Heading;
+                MaintainRotP = DefaultMaintainRotP;
             }
         }
 
@@ -157,6 +160,7 @@ public class Drive {
     // remember, angle must be in radians
     public void SetRelativeAngleTarget(double angle) {
         TargetRot = Heading - angle;
+        MaintainRotP = SpecificMaintainRotP;
     }
 
     public void Stop() {

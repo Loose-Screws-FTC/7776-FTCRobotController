@@ -24,8 +24,8 @@ public class FrontAutoSteps extends AutoSteps {
     TeamColor BaseColor = TeamColor.BLUE;
     TeamColor AllianceColor;
 
-    public static double LaunchRPM = 1460;
-    public static double AngleShift = -3;
+    public static double LaunchRPM = 1452.5;
+    public static double AngleShift = -3.5;
 
     public FrontAutoSteps(TrajectoryActionBuilder ActionBuilder, TeamColor AllianceColor, MecanumDrive Drive, RobotAbstractor robot) {
         super(Drive, robot);

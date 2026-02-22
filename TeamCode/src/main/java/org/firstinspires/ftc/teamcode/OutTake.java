@@ -43,7 +43,7 @@ public class OutTake {
     public static double NEW_D = 100;
     public static double NEW_F = 12;
 
-    public static double ComputedRPMMultiplier = 0.95;
+    public static double ComputedRPMMultiplier = 0.95 * 0.98;
 
     public void Init(DcMotorEx LeftMotor, DcMotorEx RightMotor, Servo LeftServo, Servo RightServo, Servo TiltServo) {
         LMotor = LeftMotor;
@@ -130,7 +130,8 @@ public class OutTake {
     private static double GetRawRPMAt(double distance) {
         if (distance < 53.5) return 5 * distance + 1332.5;
         if (distance < 68) return 1600;
-        return (-182.52615 / (1 + Math.exp(0.181724 * distance - 19.42445))) + 1781.5753;
+        // return (-182.52615 / (1 + Math.exp(0.181724 * distance - 19.42445))) + 1781.5753;
+        return (-205.9896 / (1 + Math.exp(0.158699 * distance - 17.30768))) + 1804.51045;
     }
 
     public static double GetRPMAt(double distance) {

@@ -16,7 +16,7 @@ public class BackAutoSteps extends AutoSteps {
     TeamColor BaseColor = TeamColor.RED;
     TeamColor AllianceColor;
 
-    public static double LaunchRPM = 1700;
+    public static double LaunchRPM = 1665;
 
     // DWAI wants us to fire "in the last 10 seconds"
     public static double FireTime = 23;
@@ -64,7 +64,7 @@ public class BackAutoSteps extends AutoSteps {
         
         if (Fire3Balls) {
             builder = builder
-                .turn(MapAngle(Math.toRadians(-19.5)))
+                .turn(MapAngle(Math.toRadians(-22.5)))
                 .stopAndAdd(new AwaitAction(() -> Robot.Runtime.seconds() > FireTime))
                 .stopAndAdd(Robot.ShootAllBallsAction());
         }

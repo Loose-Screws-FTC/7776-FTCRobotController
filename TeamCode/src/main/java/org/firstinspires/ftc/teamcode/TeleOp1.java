@@ -22,7 +22,8 @@ import java.util.List;
 @Config
 @TeleOp(name="TeleOp1", group="Iterative Opmode")
 public class TeleOp1 extends OpMode {
-    public static int CameraDegreesXOffset = -2;
+    public static int CameraXRedOffset = -1;
+    public static int CameraXBlueOffset = -6;
 
     double DistanceBasedRPM = 1600;
     public double OuttakeRPMMult = 1;
@@ -143,12 +144,14 @@ public class TeleOp1 extends OpMode {
         LLResult llResult = this.Robot.Limelight.getLatestResult();
         if (llResult != null && llResult.isValid()) {
             for (LLResultTypes.FiducialResult fidResult : llResult.getFiducialResults()) {
-                if (fidResult.getFiducialId() != 20 && fidResult.getFiducialId() != 24) {
+                boolean isRed = fidResult.getFiducialId() != 20;
+                boolean isBlue = fidResult.getFiducialId() != 24;
+                if (!isRed && !isBlue) {
                     continue;
                 }
 
                 // Target left/right distance from center of fov (degrees)
-                double tx = fidResult.getTargetXDegrees() + CameraDegreesXOffset;
+                double tx = fidResult.getTargetXDegrees();
                 // Target up/down distance from center of fov (degrees)
                 double ty = fidResult.getTargetYDegrees();
                 // Target yaw in global space (I think)
@@ -156,7 +159,16 @@ public class TeleOp1 extends OpMode {
 
                 double negOffset = Math.min(0, yaw / 31 * (5f / 6f) / 1.2);
                 double posOffset = -Math.max(0, yaw / 9 * 3);
-                double constOffset = 2;
+
+                double constOffset = 0;
+
+                if (isBlue) {
+                    negOffset *= -1;
+                    posOffset *= -1;
+                    constOffset = CameraXBlueOffset;
+                } else {
+                    constOffset = CameraXRedOffset;
+                }
 
                 if (gamepad1.y) {
                     DriveSys.SetRelativeAngleTarget(Math.toRadians(tx - negOffset + posOffset + constOffset));
